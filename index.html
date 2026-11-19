@@ -93,7 +93,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <!-- Loading -->
 <div x-show="loading" x-cloak class="fixed inset-0 z-[80] bg-sky-100/70 backdrop-blur-sm flex items-center justify-center">
-  <div class="clay pop px-8 py-6 text-center"><div class="dots"><i style="background:var(--g)"></i><i style="background:var(--b)"></i><i style="background:var(--y)"></i></div><p class="mt-3 text-sm">Sebentar ya, lagi menyimpan...</p></div>
+  <div class="clay pop px-8 py-6 text-center"><div class="dots"><i style="background:var(--g)"></i><i style="background:var(--b)"></i><i style="background:var(--y)"></i></div><p class="mt-3 text-sm">Sebentar ya, lagi memuat...</p></div>
 </div>
 
 <!-- ============ 1. LOGIN ============ -->
@@ -232,7 +232,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <h2 class="text-3xl mt-2" x-text="quizResult.score >= 60 ? 'Kamu keren banget!' : 'Ayo coba lagi!'"></h2>
         <div class="flex justify-center my-2"><template x-for="n in [1,2,3]"><span class="star" :class="n <= quizResult.stars && 'on'" :style="'--d:' + (n * 250) + 'ms'">⭐</span></template></div>
         <p class="fd text-5xl" style="color:var(--g)" x-text="quizResult.score"></p>
-        <p class="text-slate-500 mt-1" x-text="quizResult.correct + ' dari ' + quizResult.total + ' benar  •  +' + (quizResult.correct * 10) + ' XP'"></p>
+        <p class="text-slate-500 mt-1" x-text="quizResult.correct + ' dari ' + quizResult.total + ' benar  •  +' + quizResult.gained + ' XP' + (quizResult.gained === 0 ? ' (skor terbaikmu sudah tersimpan)' : '')"></p>
         <div class="flex gap-3 mt-6"><button class="btn btn-ghost flex-1" @click="selectLesson(activeLesson, 'quiz')">Ulangi</button><button class="btn flex-1" @click="closeLesson()">Ke peta</button></div>
       </div>
     </div>
@@ -248,7 +248,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
     <div class="flex items-center gap-4"><div class="w-16" x-html="mascot"></div>
       <div><h2 class="text-2xl sm:text-3xl">Ruang Kak Riki</h2><p class="text-sm text-slate-500">Kelola kurikulum, siswa dengan auto-PIN, dan rekap nilai.</p></div></div>
-    <div class="flex gap-3"><button @click="fetchLiveData()" class="btn btn-blue btn-sm">🔄 Sinkronisasi Sheets</button><button @click="logout()" class="btn btn-ghost btn-sm">Keluar</button></div>
+    <div class="flex gap-3"><button @click="fetchLiveData()" class="btn btn-blue btn-sm">🔄 Sinkronisasi Sheets</button></div>
   </div>
 
   <div class="flex gap-3 mb-8 overflow-x-auto pb-3 px-1">
@@ -277,8 +277,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <input type="text" x-model="newStudent.name" placeholder="Nama lengkap siswa" required class="inp">
         <input type="text" x-model="newStudent.kelas" placeholder="Kelas (contoh: 12-IPA)" required class="inp">
         <button type="submit" class="btn">Buat PIN & simpan</button></form></div>
-    <div class="clay overflow-hidden"><div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Nama siswa</th><th>Kelas</th><th>PIN</th><th class="text-right">Aksi</th></tr></thead>
-      <tbody><template x-for="s in studentsList" :key="s.id"><tr><td x-text="s.name"></td><td x-text="s.kelas"></td><td class="font-mono text-lg" style="color:var(--b)" x-text="s.pin"></td>
+    <div class="clay overflow-hidden"><div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Nama siswa</th><th>Kelas</th><th>PIN</th><th>XP</th><th class="text-right">Aksi</th></tr></thead>
+      <tbody><template x-for="s in studentsList" :key="s.id"><tr><td x-text="s.name"></td><td x-text="s.kelas"></td><td class="font-mono text-lg" style="color:var(--b)" x-text="s.pin"></td><td x-text="'⭐ ' + (s.xp || 0)"></td>
         <td class="text-right"><button @click="copyPin(s.pin, s.name)" class="btn btn-ghost btn-sm">📋 Salin undangan</button></td></tr></template></tbody></table></div></div>
   </div>
 
@@ -320,6 +320,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </template>
 
+<!-- Tombol keluar admin (selalu terlihat) -->
+<button x-show="session.loggedIn && session.role === 'admin'" x-cloak @click="logout()" class="btn btn-red fixed bottom-5 right-5 z-[60]" aria-label="Keluar dari halaman admin">🚪 Keluar</button>
+
 <!-- Admin login modal -->
 <div x-show="openAdminModal" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center bg-sky-900/30 backdrop-blur-sm px-4">
   <div class="clay max-w-sm w-full p-6 pop">
@@ -337,12 +340,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <script>
         const MASCOT = `<svg viewBox="0 0 120 124" class="mascot" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><ellipse cx="60" cy="117" rx="34" ry="5" fill="rgba(0,0,0,.12)"/><ellipse cx="38" cy="108" rx="13" ry="7" fill="#FF9600"/><ellipse cx="82" cy="108" rx="13" ry="7" fill="#FF9600"/><path d="M60 14c-3 10-13 13-19 9 4-10 13-14 19-9z" fill="#46A302"/><ellipse cx="60" cy="68" rx="48" ry="42" fill="#46A302"/><ellipse cx="60" cy="63" rx="48" ry="42" fill="#58CC02"/><ellipse cx="42" cy="38" rx="20" ry="8" fill="#fff" opacity=".3" transform="rotate(-20 42 38)"/><ellipse cx="60" cy="90" rx="28" ry="17" fill="#B8F28B"/><g class="eyes"><circle cx="42" cy="58" r="12" fill="#fff"/><circle cx="78" cy="58" r="12" fill="#fff"/><circle cx="44" cy="60" r="6" fill="#3C3C3C"/><circle cx="80" cy="60" r="6" fill="#3C3C3C"/><circle cx="46" cy="57" r="2" fill="#fff"/><circle cx="82" cy="57" r="2" fill="#fff"/></g><circle cx="24" cy="78" r="7" fill="#FF9AA2" opacity=".7"/><circle cx="96" cy="78" r="7" fill="#FF9AA2" opacity=".7"/><path class="m-happy" d="M50 76q10 13 20 0z" fill="#8B2E2E" stroke="#8B2E2E" stroke-width="3" stroke-linejoin="round"/><path class="m-sad" d="M50 84q10-11 20 0" fill="none" stroke="#8B2E2E" stroke-width="4" stroke-linecap="round"/></svg>`;
         let _ac;
+        const SESSION_KEY = 'bimbel_session_v1', SESSION_TTL = 8 * 60 * 60 * 1000;
+        let sessionExp = 0;
                 function bimbelApp() {
             return {
                 apiUrl: 'https://script.google.com/macros/s/AKfycbz_GqDLroOxzbtr3CL5at1V9lm0-4MBNDscp7DEhep8r0L8UzaY2S65mTLSppQV9mDs/exec',
                 loading: false,
                 toast: { show: false, message: '', timer: null },
-                session: { loggedIn: false, role: '', name: '', kelas: '' },
+                session: { loggedIn: false, role: '', id: '', name: '', kelas: '' },
                 pinInput: '',
                 loginError: '',
                 adminTab: 'eksekutif',
@@ -359,14 +364,52 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 get doneCount() { return this.pathItems.filter(i => this.isDone(i)).length; },
                 get nextItem() { return this.pathItems.find(i => !this.isDone(i)); },
                 get current() { return this.activeLesson && this.activeLesson.soal ? this.activeLesson.soal[this.quizStep] : null; },
-                isDone(it) { return !!this.done[it.type + it.id]; },
-                addXp(n) { this.xp += n; this.xpBump = true; setTimeout(() => this.xpBump = false, 500); },
-                closeLesson() { this.activeLesson = null; this.quizResult = null; },
-                finishMateri() {
-                    const k = 'materi' + this.activeLesson.id;
-                    if (!this.done[k]) { this.done[k] = true; this.addXp(10); this.confetti(36); this.sfx('ok'); this.notify('Mantap! Kamu dapat +10 XP'); }
-                    this.closeLesson();
+                itemKey(it) { return it.type === 'quiz' ? 'quiz:' + it.judul : 'materi:' + it.id; },
+                isDone(it) { return this.done[this.itemKey(it)] !== undefined; },
+                persist() {
+                    try {
+                        if (!this.session.loggedIn) { localStorage.removeItem(SESSION_KEY); return; }
+                        localStorage.setItem(SESSION_KEY, JSON.stringify({ ...this.session, xp: this.xp, done: this.done, exp: sessionExp }));
+                    } catch (e) {}
                 },
+                startSession(info, prog) {
+                    this.session = { loggedIn: true, role: info.role, id: info.id || '', name: info.name, kelas: info.kelas };
+                    this.xp = prog ? (prog.total || 0) : 0;
+                    this.done = prog ? (prog.progres || {}) : {};
+                    sessionExp = Date.now() + SESSION_TTL;
+                    this.persist();
+                },
+                async refreshStudent() {
+                    const res = await this.postToBackend({ action: 'restoreSession', id: this.session.id }, true);
+                    if (res && res.status === 'success') {
+                        this.session.name = res.name; this.session.kelas = res.kelas;
+                        this.xp = res.total || 0; this.done = res.progres || {};
+                        this.persist();
+                    } else if (res && res.status === 'error') {
+                        this.logout();
+                        this.notify(res.message || 'Sesi berakhir, silakan masuk lagi.');
+                    }
+                },
+                checkExpiry() {
+                    if (this.session.loggedIn && sessionExp && Date.now() > sessionExp) {
+                        this.logout();
+                        this.notify('Sesi 8 jam habis. Masuk lagi ya!');
+                    }
+                },
+                addXp(n) { this.xp += n; this.xpBump = true; setTimeout(() => this.xpBump = false, 500); this.persist(); },
+                closeLesson() { this.activeLesson = null; this.quizResult = null; },
+                async finishMateri() {
+                    const it = this.activeLesson, k = this.itemKey(it);
+                    if (this.done[k] !== undefined) { this.closeLesson(); return; }
+                    this.done[k] = 10; this.addXp(10); this.confetti(36); this.sfx('ok');
+                    this.notify('Mantap! Kamu dapat +10 XP');
+                    this.closeLesson();
+                    if (this.apiUrl && this.session.id) {
+                        const res = await this.postToBackend({ action: 'completeMateri', id: this.session.id, materiId: it.id }, true);
+                        if (res && res.status === 'success') { this.xp = res.total; this.done = res.progres; this.persist(); }
+                    }
+                },
+
                 pick(k) { if (this.checked) return; this.picked = k; this.quizAnswers[this.quizStep] = k; },
                 checkAnswer() {
                     if (!this.picked || this.checked) return;
@@ -424,12 +467,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 newSoal: { quizJudul: 'Latihan Ulangan Harian Turunan', tanya: '', img: '', a: '', b: '', c: '', d: '', kunci: 'a' },
 
                 initApp() {
-                    if (this.apiUrl) {
-                        this.fetchLiveData();
+                    let saved = null;
+                    try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) {}
+                    if (saved && saved.loggedIn && saved.exp > Date.now()) {
+                        this.session = { loggedIn: true, role: saved.role, id: saved.id || '', name: saved.name, kelas: saved.kelas };
+                        this.xp = saved.xp || 0; this.done = saved.done || {};
+                        sessionExp = saved.exp;
+                        if (saved.role === 'student' && this.apiUrl && saved.id) this.refreshStudent();
+                    } else {
+                        try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
                     }
+                    if (this.apiUrl) this.fetchLiveData(true);
+                    setInterval(() => this.checkExpiry(), 60000);
                 },
 
-                async fetchLiveData() {
+                async fetchLiveData(silent = false) {
                     if (!this.apiUrl) return;
                     this.loading = true;
                     try {
@@ -440,19 +492,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                             if (data.materi && data.materi.length) this.materiList = data.materi;
                             if (data.quiz && data.quiz.length) this.quizList = data.quiz;
                             if (data.rekap && data.rekap.length) this.rekapList = data.rekap;
-                            this.notify('Sinkronisasi Live Google Sheets berhasil.');
+                            if (!silent) this.notify('Sinkronisasi Live Google Sheets berhasil.');
                         }
                     } catch (err) {
                         console.error(err);
-                        this.notify('Gagal terhubung ke Live Sheets. Menggunakan mode cache.');
+                        if (!silent) this.notify('Gagal terhubung ke Live Sheets. Menggunakan mode cache.');
                     } finally {
                         this.loading = false;
                     }
                 },
 
-                async postToBackend(payload) {
+                async postToBackend(payload, silent = false) {
                     if (!this.apiUrl) return null;
-                    this.loading = true;
+                    if (!silent) this.loading = true;
                     try {
                         const res = await fetch(this.apiUrl, {
                             method: 'POST',
@@ -463,7 +515,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         console.error(err);
                         return null;
                     } finally {
-                        this.loading = false;
+                        if (!silent) this.loading = false;
                     }
                 },
 
@@ -493,7 +545,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     if (this.apiUrl) {
                         const res = await this.postToBackend({ action: 'login', pin: cleanPin });
                         if (res && res.status === 'success') {
-                            this.session = { loggedIn: true, role: 'student', name: res.name, kelas: res.kelas };
+                            this.startSession({ role: 'student', id: res.id, name: res.name, kelas: res.kelas }, res);
                             
                             return;
                         } else if (res && res.message) {
@@ -504,7 +556,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
                     const found = this.studentsList.find(s => s.pin === cleanPin);
                     if (found) {
-                        this.session = { loggedIn: true, role: 'student', name: found.name, kelas: found.kelas };
+                        this.startSession({ role: 'student', id: found.id, name: found.name, kelas: found.kelas }, null);
                         
                     } else {
                         this.loginError = 'PIN tidak terdaftar. Hubungi admin bimbel Anda.';
@@ -525,7 +577,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     });
 
                     if (res && res.status === 'success') {
-                        this.session = { loggedIn: true, role: 'admin', name: res.name || 'Owner / Instructor', kelas: 'All' };
+                        this.startSession({ role: 'admin', name: res.name || 'Owner / Instructor', kelas: 'All' }, null);
                         this.openAdminModal = false;
                         this.adminEmailInput = '';
                         this.adminPassInput = '';
@@ -536,7 +588,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 },
 
                 logout() {
-                    this.session = { loggedIn: false, role: '', name: '', kelas: '' };
+                    this.session = { loggedIn: false, role: '', id: '', name: '', kelas: '' };
+                    sessionExp = 0; this.persist();
                     this.pinInput = '';
                     this.activeLesson = null; this.quizResult = null; this.xp = 0; this.done = {};
                 },
@@ -559,39 +612,31 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 },
 
                 async submitQuiz() {
+                    const lesson = this.activeLesson, total = lesson.soal.length;
                     let correctCount = 0;
-                    const total = this.activeLesson.soal.length;
-                    
-                    this.activeLesson.soal.forEach((s, idx) => {
-                        if (this.quizAnswers[idx] === s.kunci) correctCount++;
-                    });
-
+                    lesson.soal.forEach((q, idx) => { if (this.quizAnswers[idx] === q.kunci) correctCount++; });
                     const finalScore = Math.round((correctCount / total) * 100);
-                    const nowStr = new Date().toLocaleString('id-ID');
 
-                    if (this.apiUrl) {
-                        await this.postToBackend({
-                            action: 'submitQuiz',
-                            nama: this.session.name,
-                            kelas: this.session.kelas,
-                            quizJudul: this.activeLesson.judul,
-                            skor: finalScore
-                        });
-                    }
+                    // XP dihitung lokal dulu (instan), lalu disamakan dengan server
+                    const k = this.itemKey({ type: 'quiz', judul: lesson.judul });
+                    const prev = this.done[k] || 0, xpNow = correctCount * 10, gained = Math.max(0, xpNow - prev);
+                    this.done[k] = Math.max(prev, xpNow);
 
                     this.rekapList.unshift({
-                        id: Date.now(),
-                        nama: this.session.name,
-                        kelas: this.session.kelas,
-                        quizJudul: this.activeLesson.judul,
-                        skor: finalScore,
-                        timestamp: nowStr
+                        id: Date.now(), nama: this.session.name, kelas: this.session.kelas,
+                        quizJudul: lesson.judul, skor: finalScore, timestamp: new Date().toLocaleString('id-ID')
                     });
-
-                    this.quizResult = { score: finalScore, correct: correctCount, total, stars: finalScore >= 90 ? 3 : finalScore >= 60 ? 2 : 1 };
-                    this.done['quiz' + this.activeLesson.id] = true;
-                    this.addXp(correctCount * 10);
+                    this.quizResult = { score: finalScore, correct: correctCount, total, gained, stars: finalScore >= 90 ? 3 : finalScore >= 60 ? 2 : 1 };
+                    this.addXp(gained);
                     if (finalScore >= 60) { this.confetti(70); this.sfx('ok'); }
+
+                    if (this.apiUrl) {
+                        const res = await this.postToBackend({
+                            action: 'submitQuiz', id: this.session.id, nama: this.session.name, kelas: this.session.kelas,
+                            quizJudul: lesson.judul, skor: finalScore, benar: correctCount
+                        }, true);
+                        if (res && res.status === 'success' && res.total !== undefined) { this.xp = res.total; this.done = res.progres; this.persist(); }
+                    }
                 },
 
                 async addStudent() {
