@@ -582,6 +582,21 @@
                             this.session = { loggedIn: true, role: 'student', name: res.name, kelas: res.kelas };
                             if (this.materiList.length > 0) this.selectLesson(this.materiList[0], 'materi');
                             return;
+                        } else if (res && res.message) {
+                            this.loginError = res.message;
+                            return;
+                        }
+                    }
+
+                    const found = this.studentsList.find(s => s.pin === cleanPin);
+                    if (found) {
+                        this.session = { loggedIn: true, role: 'student', name: found.name, kelas: found.kelas };
+                        if (this.materiList.length > 0) this.selectLesson(this.materiList[0], 'materi');
+                    } else {
+                        this.loginError = 'PIN tidak terdaftar. Hubungi admin bimbel Anda.';
+                    }
+                },
+
                 async handleAdminLogin() {
                     this.adminLoginError = '';
                     if (!this.apiUrl) {
