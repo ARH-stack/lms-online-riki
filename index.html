@@ -1,474 +1,343 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Belajar — LMS online riki</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        slate: { 850: '#1e293b', 900: '#0f172a' },
-                        indigo: { 600: '#4f46e5', 700: '#4338ca' }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        [x-cloak] { display: none !important; }
-        /* Custom scrollbar for Udemy curriculum sidebar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Belajar — Bersama kak Riki</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#E8F6FF;--ink:#3C3C3C;--g:#58CC02;--gs:#46A302;--b:#1CB0F6;--bs:#1899D6;--y:#FFC800;--ys:#E5AC00;--r:#FF4B4B;--rs:#D93A3A;--p:#CE82FF;--ps:#A568CC;--edge:#CFE3F1}
+*{-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito',sans-serif;font-weight:700;background:var(--bg);color:var(--ink)}
+h1,h2,h3,.fd{font-family:'Baloo 2',sans-serif;font-weight:800;line-height:1.15}
+[x-cloak]{display:none!important}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:4px solid #1CB0F666;outline-offset:2px}
+
+/* ---- clay surfaces ---- */
+.clay{background:#fff;border-radius:30px;box-shadow:inset 0 8px 12px rgba(255,255,255,.95),inset 0 -8px 0 rgba(60,120,170,.07),0 8px 0 var(--edge),0 22px 30px rgba(60,120,170,.18)}
+.clay-sm{border-radius:22px;box-shadow:inset 0 5px 8px rgba(255,255,255,.95),inset 0 -5px 0 rgba(60,120,170,.07),0 5px 0 var(--edge),0 12px 18px rgba(60,120,170,.14);background:#fff}
+.btn{--c:var(--g);--s:var(--gs);font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;color:#fff;background:var(--c);border-radius:20px;padding:11px 22px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ box-shadow:inset 0 6px 8px rgba(255,255,255,.38),inset 0 -6px 0 rgba(0,0,0,.09),0 6px 0 var(--s),0 14px 18px rgba(0,0,0,.14);transition:transform .12s,box-shadow .12s,filter .15s}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.05)}
+.btn:active{transform:translateY(5px);box-shadow:inset 0 6px 8px rgba(255,255,255,.3),inset 0 -4px 0 rgba(0,0,0,.09),0 1px 0 var(--s),0 3px 6px rgba(0,0,0,.14)}
+.btn:disabled{--c:#DDE6EC;--s:#C3CFD8;color:#9AA9B4;cursor:not-allowed;transform:none;filter:none}
+.btn-blue{--c:var(--b);--s:var(--bs)}.btn-red{--c:var(--r);--s:var(--rs)}.btn-purple{--c:var(--p);--s:var(--ps)}
+.btn-yellow{--c:var(--y);--s:var(--ys);color:#6B4E00}.btn-ghost{--c:#fff;--s:var(--edge);color:#6B7C88}
+.btn-sm{font-size:.9rem;padding:7px 14px;border-radius:16px}.btn-lg{font-size:1.25rem;padding:15px 28px;width:100%;border-radius:24px}
+.inp{width:100%;background:#F0F8FD;border:3px solid transparent;border-radius:18px;padding:12px 16px;font-weight:800;font-size:.95rem;box-shadow:inset 0 4px 8px rgba(60,120,170,.2);transition:border-color .15s,background .15s}
+.inp:focus{border-color:var(--b);background:#fff;outline:0}
+.lbl{display:block;font-size:.85rem;margin:0 0 6px 6px;color:#6B7C88}
+.pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:6px 14px;font-weight:900;box-shadow:inset 0 3px 5px #fff,inset 0 -3px 0 rgba(60,120,170,.08),0 3px 0 var(--edge)}
+.tab{padding:9px 18px;border-radius:999px;background:#fff;color:#6B7C88;font-weight:900;white-space:nowrap;box-shadow:inset 0 3px 5px #fff,0 4px 0 var(--edge);transition:transform .12s}
+.tab:active{transform:translateY(3px)}.tab.on{background:var(--b);color:#fff;box-shadow:inset 0 4px 6px rgba(255,255,255,.4),0 4px 0 var(--bs)}
+.tbl{width:100%;font-size:.9rem;text-align:left;border-collapse:collapse}.tbl th{padding:12px 16px;color:#8A9AA6;font-weight:900;background:#F4FAFE}.tbl td{padding:12px 16px;border-top:2px solid #EEF5FA}
+.tbl tr:hover td{background:#FAFDFF}
+.drop{border:4px dashed #BFD8EA;border-radius:24px;background:#F6FBFF;padding:22px;text-align:center;cursor:pointer;transition:transform .15s,border-color .15s}.drop:hover{border-color:var(--b);transform:scale(1.01)}
+
+/* ---- learning path ---- */
+.node{width:92px;height:92px;border-radius:50%;font-size:2.4rem;display:grid;place-items:center;position:relative;cursor:pointer;color:#fff;
+ background:var(--c);box-shadow:inset 0 10px 12px rgba(255,255,255,.4),inset 0 -10px 0 rgba(0,0,0,.1),0 10px 0 var(--s),0 20px 24px rgba(0,0,0,.16);transition:transform .15s,box-shadow .15s}
+.node:hover{transform:translateY(-4px) rotate(-4deg) scale(1.05)}.node:active{transform:translateY(8px);box-shadow:inset 0 10px 12px rgba(255,255,255,.3),inset 0 -6px 0 rgba(0,0,0,.1),0 2px 0 var(--s)}
+.n-green{--c:var(--g);--s:var(--gs)}.n-blue{--c:var(--b);--s:var(--bs)}.n-purple{--c:var(--p);--s:var(--ps)}
+.node.is-done{--c:var(--y);--s:var(--ys)}
+.tick{position:absolute;right:-6px;top:-6px;width:32px;height:32px;border-radius:50%;background:#fff;color:var(--g);font-size:1.1rem;display:grid;place-items:center;box-shadow:0 3px 0 var(--edge),0 6px 10px rgba(0,0,0,.15);animation:pop .4s}
+.start{position:absolute;left:50%;top:-52px;transform:translateX(-50%);background:#fff;color:var(--g);font-family:'Baloo 2';font-weight:800;padding:6px 16px;border-radius:16px;box-shadow:0 4px 0 var(--edge),0 8px 12px rgba(0,0,0,.12);animation:hop 1.1s ease-in-out infinite;white-space:nowrap}
+.start:after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:#fff}
+
+/* ---- quiz ---- */
+.bar{height:20px;border-radius:99px;background:#D7E7F2;box-shadow:inset 0 4px 6px rgba(60,120,170,.25);overflow:hidden}
+.fill{height:100%;border-radius:99px;background:var(--g);box-shadow:inset 0 5px 0 rgba(255,255,255,.35);transition:width .6s cubic-bezier(.3,1.4,.5,1);position:relative}
+.opt{width:100%;display:flex;align-items:center;gap:14px;text-align:left;padding:14px 18px;border-radius:22px;background:#fff;cursor:pointer;font-size:1.05rem;font-weight:800;
+ border:3px solid #E3EEF6;box-shadow:inset 0 5px 8px #fff,inset 0 -5px 0 rgba(60,120,170,.06),0 6px 0 var(--edge);animation:rise .45s cubic-bezier(.3,1.5,.5,1) backwards;transition:transform .12s,box-shadow .12s}
+.opt:hover:not(:disabled){transform:translateY(-2px)}.opt:active:not(:disabled){transform:translateY(5px);box-shadow:0 1px 0 var(--edge)}
+.opt .k{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#EAF3F9;font-family:'Baloo 2';font-size:1.1rem;color:#6B7C88;flex:none}
+.opt.sel{border-color:var(--b);background:#E3F5FF;box-shadow:0 6px 0 var(--bs)}.opt.sel .k{background:var(--b);color:#fff}
+.opt.right{border-color:var(--g);background:#E6FAD3;box-shadow:0 6px 0 var(--gs);animation:pulse .5s}.opt.right .k{background:var(--g);color:#fff}
+.opt.wrong{border-color:var(--r);background:#FFE3E3;box-shadow:0 6px 0 var(--rs);animation:shake .45s}.opt.wrong .k{background:var(--r);color:#fff}
+.opt.dim{opacity:.55}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;border-top:4px solid transparent;transition:background .25s,border-color .25s}
+.sheet.idle{background:#fff;border-color:#E3EEF6}.sheet.ok{background:#DFF8C6;border-color:#B8EC8C;color:#3B8A00}.sheet.no{background:#FFDCDC;border-color:#FFB8B8;color:#C73333}
+.star{font-size:4rem;filter:grayscale(1) opacity(.3);transform:scale(.6)}.star.on{filter:none;animation:pop .6s cubic-bezier(.3,1.8,.5,1) forwards;animation-delay:var(--d)}
+
+/* ---- mascot & decor ---- */
+.mascot{animation:bob 3.2s ease-in-out infinite;overflow:visible}
+.eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite}
+.m-sad{display:none}.sad .m-sad{display:block}.sad .m-happy{display:none}.sad .mascot{animation:none}
+.happy-jump .mascot{animation:hop .7s ease-in-out infinite}
+.blob{position:absolute;border-radius:50%;animation:float 9s ease-in-out infinite;box-shadow:inset -14px -14px 24px rgba(0,0,0,.08),inset 12px 12px 22px rgba(255,255,255,.6)}
+.cf{position:fixed;top:45vh;width:10px;height:15px;border-radius:3px;z-index:100;pointer-events:none;animation:cf 1.6s cubic-bezier(.2,.7,.4,1) forwards}
+.dots i{width:14px;height:14px;border-radius:50%;display:inline-block;margin:0 3px;animation:hop .8s infinite}.dots i:nth-child(2){animation-delay:.12s}.dots i:nth-child(3){animation-delay:.24s}
+.pop{animation:pop .45s cubic-bezier(.3,1.7,.5,1)}.bump{animation:pulse .5s}.slide-up{animation:slideup .35s cubic-bezier(.3,1.4,.5,1)}.shake{animation:shake .45s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(14px,-22px)}}
+@keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}40%{transform:scale(1.08)}}
+@keyframes rise{from{transform:translateY(24px) scale(.95);opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes slideup{from{transform:translateY(60px);opacity:0}}
+@keyframes cf{30%{transform:translate(calc(var(--dx)*.5),-22vh) rotate(calc(var(--r)*.4))}100%{transform:translate(var(--dx),50vh) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col" x-data="bimbelApp()" x-init="initApp()">
+<body x-data="bimbelApp()" x-init="initApp()" class="min-h-screen">
 
-    <!-- Toast Notification Banner (Shadcn style) -->
-    <div x-show="toast.show" x-transition.opacity.duration.200ms x-cloak
-        class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-800 flex items-center space-x-3 text-xs font-medium">
-        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        <span x-text="toast.message"></span>
+<!-- Toast -->
+<div x-show="toast.show" x-cloak x-transition.opacity class="fixed top-20 left-1/2 -translate-x-1/2 z-[90] w-[90%] max-w-sm">
+  <div class="clay-sm pop px-5 py-3 flex items-center gap-3 text-sm"><span class="text-xl">🎈</span><span x-text="toast.message"></span></div>
+</div>
+
+<!-- Loading -->
+<div x-show="loading" x-cloak class="fixed inset-0 z-[80] bg-sky-100/70 backdrop-blur-sm flex items-center justify-center">
+  <div class="clay pop px-8 py-6 text-center"><div class="dots"><i style="background:var(--g)"></i><i style="background:var(--b)"></i><i style="background:var(--y)"></i></div><p class="mt-3 text-sm">Sebentar ya, lagi menyimpan...</p></div>
+</div>
+
+<!-- ============ 1. LOGIN ============ -->
+<template x-if="!session.loggedIn">
+<div class="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+  <i class="blob" style="width:190px;height:190px;left:-50px;top:8%;background:var(--y)"></i>
+  <i class="blob" style="width:260px;height:260px;right:-80px;bottom:-40px;background:var(--b);animation-delay:-3s"></i>
+  <i class="blob" style="width:110px;height:110px;right:12%;top:10%;background:var(--p);animation-delay:-6s"></i>
+  <div class="clay max-w-md w-full p-8 pt-6 relative text-center pop">
+    <div class="w-36 mx-auto" :class="loginError ? 'sad shake' : ''" x-html="mascot"></div>
+    <h1 class="text-3xl mt-2">Halo, teman belajar!</h1>
+    <p class="text-sm text-slate-500 mt-1 mb-6">Masukkan PIN 6 angka dari Kak Riki ya</p>
+    <form @submit.prevent="handleLogin" class="space-y-4">
+      <input type="text" maxlength="6" x-model="pinInput" placeholder="• • • • • •" inputmode="numeric" autocomplete="off" aria-label="PIN siswa" class="inp text-center text-3xl tracking-[.3em] font-mono py-4">
+      <div x-show="loginError" x-cloak class="shake bg-rose-50 text-rose-600 text-sm p-3 rounded-2xl" x-text="loginError"></div>
+      <button type="submit" class="btn btn-lg">Ayo mulai belajar!</button>
+    </form>
+    <button @click="openAdminModal = true" class="mt-6 text-sm text-sky-600 hover:underline">Masuk sebagai pengajar</button>
+  </div>
+</div>
+</template>
+
+<!-- ============ 2. STUDENT ============ -->
+<template x-if="session.loggedIn && session.role === 'student'">
+<div class="min-h-screen pb-24">
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur px-4 py-3 flex items-center justify-between" style="box-shadow:0 4px 0 var(--edge)">
+    <div class="fd text-xl flex items-center gap-2"><span class="w-10" x-html="mascot"></span><span class="hidden sm:inline">Bimbel Kak Riki</span></div>
+    <div class="flex items-center gap-2">
+      <span class="pill" :class="xpBump && 'bump'">⭐ <span x-text="xp"></span> XP</span>
+      <span class="pill hidden sm:inline-flex" x-text="session.name"></span>
+      <button @click="logout()" class="btn btn-ghost btn-sm">Keluar</button>
+    </div>
+  </header>
+
+  <!-- Peta belajar -->
+  <template x-if="!activeLesson">
+  <main class="max-w-xl mx-auto px-4 pt-6 pop">
+    <div class="clay p-5 flex items-center gap-4">
+      <div class="w-24 shrink-0" x-html="mascot"></div>
+      <div class="flex-1">
+        <h2 class="text-2xl" x-text="'Hai, ' + session.name.split(' ')[0] + '!'"></h2>
+        <p class="text-sm text-slate-500" x-text="'Kelas ' + session.kelas + ' • ' + doneCount + ' dari ' + pathItems.length + ' misi selesai'"></p>
+        <div class="bar mt-3"><div class="fill" :style="'width:' + (pathItems.length ? doneCount / pathItems.length * 100 : 0) + '%'"></div></div>
+      </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div x-show="loading" x-cloak class="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center">
-        <div class="bg-white px-5 py-3.5 rounded-xl shadow-xl border border-slate-200 flex items-center space-x-3">
-            <svg class="animate-spin h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span class="text-xs font-semibold text-slate-700">Menyinkronkan ke Google Sheets...</span>
+    <div x-show="!pathItems.length" class="text-center text-slate-500 mt-12">Belum ada misi. Tunggu Kak Riki menambahkannya ya! 🌱</div>
+
+    <div class="flex flex-col items-center mt-16 pb-10">
+      <template x-for="(it, i) in pathItems" :key="it.type + it.id">
+        <div class="flex flex-col items-center mb-10" :style="'transform:translateX(' + [0, 50, 0, -50][i % 4] + 'px)'">
+          <div class="relative">
+            <div class="start" x-show="nextItem && nextItem.type === it.type && nextItem.id === it.id">Mulai di sini!</div>
+            <button class="node" :class="[it.type === 'quiz' ? 'n-purple' : (it.tipe === 'youtube' ? 'n-green' : 'n-blue'), isDone(it) && 'is-done']" :aria-label="it.judul" @click="selectLesson(it, it.type)">
+              <span x-text="it.type === 'quiz' ? '⭐' : (it.tipe === 'youtube' ? '🎬' : '📄')"></span>
+              <b class="tick" x-show="isDone(it)">✓</b>
+            </button>
+          </div>
+          <div class="mt-4 text-center text-sm max-w-[11rem] fd" x-text="it.judul"></div>
+          <div class="text-xs text-slate-400" x-text="it.type === 'quiz' ? it.soal.length + ' soal seru' : (it.tipe === 'youtube' ? 'Video' : 'Dokumen')"></div>
         </div>
+      </template>
     </div>
+  </main>
+  </template>
 
-    <!-- ================= 1. LOGIN SCREEN ================= -->
-    <template x-if="!session.loggedIn">
-        <div class="min-h-screen flex items-center justify-center px-4 bg-slate-100">
-            <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
-                <div class="flex items-center space-x-3 mb-6">
-                    <div class="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 62v0m0 0v-6m0 6h6m-6 0H6"/></svg>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-slate-900 text-base">Portal Belajar Eksekutif</h1>
-                        <p class="text-xs text-slate-500">Masuk menggunakan PIN unik Anda</p>
-                    </div>
-                </div>
-
-                <form @submit.prevent="handleLogin" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">PIN Siswa (6 Digit)</label>
-                        <input type="text" maxlength="6" x-model="pinInput" placeholder="Contoh: 849201" 
-                            class="w-full text-center text-xl tracking-[0.25em] font-mono font-bold py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:bg-white focus:outline-none uppercase transition">
-                    </div>
-                    <div x-show="loginError" class="text-rose-600 text-xs font-medium bg-rose-50 border border-rose-200 p-3 rounded-xl" x-text="loginError"></div>
-                    
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-sm text-xs">
-                        Masuk ke Course Platform
-                    </button>
-                </form>
-
-                <div class="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span class="text-slate-500">Akses Pengajar / Admin?</span>
-                    <button @click="openAdminModal = true" class="text-indigo-600 hover:text-indigo-700 font-semibold hover:underline flex items-center space-x-1">
-                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
-                        <span>Login Admin</span>
-                    </button>
-                </div>
-            </div>
+  <!-- Materi -->
+  <template x-if="activeLesson && activeLesson.type === 'materi'">
+  <main class="max-w-3xl mx-auto px-4 pt-6 pop">
+    <button @click="closeLesson()" class="btn btn-ghost btn-sm mb-4">← Kembali ke peta</button>
+    <div class="clay p-4 sm:p-6">
+      <template x-if="activeLesson.tipe === 'youtube'">
+        <div class="aspect-video rounded-3xl overflow-hidden bg-slate-900" style="box-shadow:inset 0 6px 14px rgba(0,0,0,.4)">
+          <iframe :src="convertToEmbed(activeLesson.url)" class="w-full h-full" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
-    </template>
-
-    <!-- ================= 2. UDEMY STYLE STUDENT DASHBOARD ================= -->
-    <template x-if="session.loggedIn && session.role === 'student'">
-        <div class="min-h-screen flex flex-col bg-slate-900 text-white">
-            <!-- Udemy Top Navbar -->
-            <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-xs">LMS</div>
-                        <span class="font-bold text-sm tracking-tight text-slate-100 hidden sm:inline">Kurikulum Bimbel Eksekutif</span>
-                    </div>
-                    <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
-                    <span class="text-xs text-slate-400 font-medium truncate max-w-xs" x-text="activeLesson ? activeLesson.judul : 'Pilih Materi'"></span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="text-right hidden sm:block">
-                        <div class="text-xs font-semibold text-slate-200" x-text="session.name"></div>
-                        <div class="text-[10px] text-slate-400" x-text="'Kelas ' + session.kelas"></div>
-                    </div>
-                    <button @click="logout()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition border border-slate-700">Keluar</button>
-                </div>
-            </header>
-
-            <!-- Udemy Course Workspace (Split View: Main Content + Curriculum Sidebar) -->
-            <div class="flex-grow flex flex-col lg:flex-row overflow-hidden">
-                
-                <!-- Main Content Area (Player / Quiz Viewer) -->
-                <div class="flex-grow bg-black flex flex-col items-center justify-center relative min-h-[50vh] lg:min-h-0 overflow-y-auto">
-                    <template x-if="!activeLesson">
-                        <div class="text-center p-8 text-slate-400">
-                            <svg class="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                            <p class="text-sm font-semibold">Pilih modul materi atau quiz dari panel kurikulum di samping.</p>
-                        </div>
-                    </template>
-
-                    <!-- Video / PDF Player view -->
-                    <template x-if="activeLesson && activeLesson.type === 'materi'">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-grow bg-slate-950 flex items-center justify-center relative min-h-[320px]">
-                                <template x-if="activeLesson.tipe === 'youtube'">
-                                    <iframe :src="convertToEmbed(activeLesson.url)" 
-                                        class="w-full h-full absolute inset-0" 
-                                        frameborder="0" 
-                                        referrerpolicy="strict-origin-when-cross-origin"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                        allowfullscreen>
-                                    </iframe>
-                                </template>
-                                <template x-if="activeLesson.tipe !== 'youtube'">
-                                    <div class="text-center p-8">
-                                        <svg class="w-12 h-12 mx-auto mb-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        <p class="text-sm text-slate-300 mb-4 font-medium" x-text="activeLesson.judul"></p>
-                                        <a :href="activeLesson.url" target="_blank" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition inline-flex items-center space-x-2">
-                                            <span>Unduh / Buka Dokumen Materi</span>
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                        </a>
-                                    </div>
-                                </template>
-                            </div>
-                            <div class="p-6 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div>
-                                    <h2 class="text-base font-bold text-slate-100" x-text="activeLesson.judul"></h2>
-                                    <p class="text-xs text-slate-400 mt-1" x-text="activeLesson.deskripsi || 'Materi pembelajaran kurikulum utama.'"></p>
-                                </div>
-                                <template x-if="activeLesson.tipe === 'youtube'">
-                                    <a :href="activeLesson.url" target="_blank" rel="noopener noreferrer"
-                                        class="shrink-0 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition inline-flex items-center space-x-2">
-                                        <span>Buka di YouTube</span>
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                    </a>
-                                </template>
-                            </div>
-                        </div>
-                    </template>
-
-                    <!-- Quiz Solver View -->
-                    <template x-if="activeLesson && activeLesson.type === 'quiz'">
-                        <div class="w-full h-full flex flex-col p-6 lg:p-10 overflow-y-auto max-w-3xl mx-auto">
-                            <div class="mb-6">
-                                <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold uppercase rounded-md">Quiz Interaktif</span>
-                                <h2 class="text-xl font-bold text-slate-100 mt-2" x-text="activeLesson.judul"></h2>
-                                <p class="text-xs text-slate-400">Jawab seluruh pertanyaan dengan teliti. Skor akan dihitung otomatis.</p>
-                            </div>
-
-                            <div class="space-y-6 flex-grow">
-                                <template x-for="(soal, index) in activeLesson.soal" :key="index">
-                                    <div class="bg-slate-850 p-5 rounded-xl border border-slate-800">
-                                        <p class="text-sm font-semibold text-slate-200 mb-3" x-text="(index+1) + '. ' + soal.tanya"></p>
-                                        
-                                        <!-- Optional Quiz Image -->
-                                        <template x-if="soal.img">
-                                            <div class="mb-4 rounded-lg overflow-hidden border border-slate-700 bg-slate-900 max-h-60 flex items-center justify-center">
-                                                <img :src="soal.img" class="max-h-60 object-contain">
-                                            </div>
-                                        </template>
-
-                                        <div class="space-y-2">
-                                            <template x-for="(opt, optKey) in soal.opsi">
-                                                <label class="flex items-center space-x-3 p-3 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 cursor-pointer transition text-xs">
-                                                    <input type="radio" :name="'quiz_soal_'+index" :value="optKey" x-model="quizAnswers[index]" class="text-indigo-600 focus:ring-indigo-500">
-                                                    <span class="font-bold uppercase text-indigo-400 w-4" x-text="optKey + '.'"></span>
-                                                    <span class="text-slate-200 font-medium" x-text="opt"></span>
-                                                </label>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-
-                            <div class="mt-8 pt-4 border-t border-slate-800 flex justify-end">
-                                <button @click="submitQuiz()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition shadow-sm">
-                                    Kumpul Jawaban & Akhiri Quiz ⚡
-                                </button>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Udemy Curriculum Sidebar (Right) -->
-                <div class="w-full lg:w-96 bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col shrink-0 h-80 lg:h-auto">
-                    <div class="p-4 border-b border-slate-800 font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center justify-between">
-                        <span>Kurikulum Course</span>
-                        <span class="text-indigo-400" x-text="(materiList.length + quizList.length) + ' Modul'"></span>
-                    </div>
-
-                    <div class="flex-grow overflow-y-auto divide-y divide-slate-800/60">
-                        <!-- Section Materi -->
-                        <div class="p-3 bg-slate-950/40">
-                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Modul Materi Belajar</div>
-                            <div class="space-y-1">
-                                <template x-for="item in materiList" :key="item.id">
-                                    <button @click="selectLesson(item, 'materi')" 
-                                        :class="activeLesson && activeLesson.id === item.id && activeLesson.type === 'materi' ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'hover:bg-slate-800/60 text-slate-300 border-transparent'"
-                                        class="w-full text-left p-3 rounded-xl border transition flex items-center space-x-3 text-xs">
-                                        <div class="w-7 h-7 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center shrink-0">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        </div>
-                                        <div class="flex-grow truncate">
-                                            <div class="font-semibold truncate" x-text="item.judul"></div>
-                                            <div class="text-[10px] text-slate-400 uppercase" x-text="item.tipe"></div>
-                                        </div>
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- Section Quiz -->
-                        <div class="p-3 bg-slate-950/40">
-                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Evaluasi & Quiz</div>
-                            <div class="space-y-1">
-                                <template x-for="q in quizList" :key="q.id">
-                                    <button @click="selectLesson(q, 'quiz')" 
-                                        :class="activeLesson && activeLesson.id === q.id && activeLesson.type === 'quiz' ? 'bg-emerald-600/20 border-emerald-500 text-white' : 'hover:bg-slate-800/60 text-slate-300 border-transparent'"
-                                        class="w-full text-left p-3 rounded-xl border transition flex items-center space-x-3 text-xs">
-                                        <div class="w-7 h-7 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center shrink-0">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-6 9l2 2 4-4"/></svg>
-                                        </div>
-                                        <div class="flex-grow truncate">
-                                            <div class="font-semibold truncate" x-text="q.judul"></div>
-                                            <div class="text-[10px] text-slate-400" x-text="q.soal.length + ' Soal Pilihan Ganda'"></div>
-                                        </div>
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </template>
-
-    <!-- ================= 3. ADMIN DASHBOARD ================= -->
-    <template x-if="session.loggedIn && session.role === 'admin'">
-        <div class="max-w-6xl w-full mx-auto px-4 py-8 flex-grow">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4 border-b border-slate-200 pb-5">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-900">Executive Instructor & Admin Dashboard</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Kelola kurikulum course, siswa dengan auto-PIN generator, dan rekap nilai.</p>
-                </div>
-                <button @click="fetchLiveData()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs flex items-center space-x-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span>Sinkronisasi Live Sheets</span>
-                </button>
-            </div>
-
-            <!-- Admin Tabs -->
-            <div class="flex border-b border-slate-200 mb-6 space-x-6 overflow-x-auto text-xs">
-                <button @click="adminTab = 'eksekutif'" :class="adminTab === 'eksekutif' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="pb-3 border-b-2 font-semibold transition whitespace-nowrap">Rekap Eksekutif</button>
-                <button @click="adminTab = 'siswa'" :class="adminTab === 'siswa' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="pb-3 border-b-2 font-semibold transition whitespace-nowrap">Kelola Siswa & PIN</button>
-                <button @click="adminTab = 'materi'" :class="adminTab === 'materi' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="pb-3 border-b-2 font-semibold transition whitespace-nowrap">Input Materi + Upload File</button>
-                <button @click="adminTab = 'quiz'" :class="adminTab === 'quiz' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'" class="pb-3 border-b-2 font-semibold transition whitespace-nowrap">Input Soal + Drag & Drop Gambar</button>
-            </div>
-
-            <!-- Sub-tab Eksekutif -->
-            <div x-show="adminTab === 'eksekutif'">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Siswa Aktif</span>
-                        <div class="text-3xl font-bold text-slate-900 mt-1" x-text="studentsList.length"></div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Modul Materi</span>
-                        <div class="text-3xl font-bold text-indigo-600 mt-1" x-text="materiList.length"></div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Riwayat Quiz</span>
-                        <div class="text-3xl font-bold text-emerald-600 mt-1" x-text="rekapList.length"></div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                        <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Rekap Nilai Siswa</h3>
-                        <button @click="exportCSV()" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold px-3 py-1.5 rounded-lg transition border border-indigo-200">Export CSV</button>
-                    </div>
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
-                                <th class="p-3.5">Nama Siswa</th>
-                                <th class="p-3.5">Kelas</th>
-                                <th class="p-3.5">Judul Quiz</th>
-                                <th class="p-3.5">Skor</th>
-                                <th class="p-3.5">Waktu Submit</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <template x-for="(r, idx) in rekapList" :key="idx">
-                                <tr>
-                                    <td class="p-3.5 font-medium text-slate-900" x-text="r.nama"></td>
-                                    <td class="p-3.5 text-slate-500" x-text="r.kelas"></td>
-                                    <td class="p-3.5 text-slate-700" x-text="r.quizJudul"></td>
-                                    <td class="p-3.5 font-bold text-emerald-600" x-text="r.skor"></td>
-                                    <td class="p-3.5 text-slate-400" x-text="r.timestamp"></td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Sub-tab Siswa -->
-            <div x-show="adminTab === 'siswa'">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs mb-6">
-                    <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3">Tambah Siswa Baru (Auto-PIN Unik)</h3>
-                    <form @submit.prevent="addStudent" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <input type="text" x-model="newStudent.name" placeholder="Nama Lengkap Siswa" required class="border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                        <input type="text" x-model="newStudent.kelas" placeholder="Kelas (Contoh: 12-IPA)" required class="border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-2.5 rounded-xl transition shadow-sm">Generate PIN & Simpan</button>
-                    </form>
-                </div>
-
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
-                                <th class="p-3.5">Nama Siswa</th>
-                                <th class="p-3.5">Kelas</th>
-                                <th class="p-3.5">PIN 6 Digit</th>
-                                <th class="p-3.5 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <template x-for="s in studentsList" :key="s.id">
-                                <tr>
-                                    <td class="p-3.5 font-medium text-slate-900" x-text="s.name"></td>
-                                    <td class="p-3.5 text-slate-600" x-text="s.kelas"></td>
-                                    <td class="p-3.5 font-mono font-bold text-indigo-600 text-sm" x-text="s.pin"></td>
-                                    <td class="p-3.5 text-right">
-                                        <button @click="copyPin(s.pin, s.name)" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3 py-1.5 rounded-lg font-semibold transition border border-slate-200">Salin Info WhatsApp</button>
-                                    </td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Sub-tab Materi + Drag & Drop File Upload -->
-            <div x-show="adminTab === 'materi'">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs mb-6">
-                    <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3">Terbitkan Materi Baru (Video / Dokumen)</h3>
-                    <form @submit.prevent="addMateri" class="space-y-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <input type="text" x-model="newMateri.judul" placeholder="Judul Materi" required class="border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                            <input type="text" x-model="newMateri.kelas" placeholder="Target Kelas (Contoh: 12-IPA atau ALL)" required class="border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <select x-model="newMateri.tipe" class="border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                                <option value="youtube">YouTube Unlisted URL</option>
-                                <option value="pdf">Google Drive PDF / File Link</option>
-                            </select>
-                            <input type="url" x-model="newMateri.url" placeholder="Paste URL (YouTube / Drive Link)" required class="border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                        </div>
-
-                        <!-- Drag and Drop File Upload Area -->
-                        <div @dragover.prevent @dragleave.prevent @drop.prevent="handleMaterialFileDrop($event)"
-                            class="border-2 border-dashed border-slate-300 hover:border-indigo-600 bg-slate-50 rounded-xl p-6 text-center cursor-pointer transition">
-                            <svg class="w-8 h-8 mx-auto text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                            <p class="text-xs font-semibold text-slate-700">Drag & Drop file materi atau dokumen pendukung di sini</p>
-                            <p class="text-[10px] text-slate-400 mt-1" x-text="newMateri.fileName ? 'File terpilih: ' + newMateri.fileName : 'PDF, DOCX, ZIP (Maks 10MB)'"></p>
-                        </div>
-
-                        <input type="text" x-model="newMateri.deskripsi" placeholder="Deskripsi singkat modul materi..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-2.5 px-6 rounded-xl transition shadow-sm">Terbitkan ke Kurikulum Siswa</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Sub-tab Quiz + Drag & Drop Image Upload -->
-            <div x-show="adminTab === 'quiz'">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-                    <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3">Tambah Soal Quiz dengan Dukungan Gambar</h3>
-                    <form @submit.prevent="addSoal" class="space-y-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <input type="text" x-model="newSoal.quizJudul" placeholder="Judul Paket Quiz (Contoh: Kuis Turunan Lanjutan)" required class="border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                            <select x-model="newSoal.kunci" class="border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                                <option value="a">Kunci Jawaban: A</option>
-                                <option value="b">Kunci Jawaban: B</option>
-                                <option value="c">Kunci Jawaban: C</option>
-                                <option value="d">Kunci Jawaban: D</option>
-                            </select>
-                        </div>
-                        <textarea x-model="newSoal.tanya" rows="2" placeholder="Tulis pertanyaan soal di sini..." required class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-xs bg-slate-50 focus:ring-2 focus:ring-indigo-600 focus:outline-none"></textarea>
-
-                        <!-- Drag and Drop Image Upload Zone -->
-                        <div @dragover.prevent @dragleave.prevent @drop.prevent="handleQuizImageDrop($event)"
-                            class="border-2 border-dashed border-slate-300 hover:border-indigo-600 bg-slate-50 rounded-xl p-5 text-center cursor-pointer transition relative">
-                            <template x-if="!newSoal.img">
-                                <div>
-                                    <svg class="w-7 h-7 mx-auto text-slate-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                    <p class="text-xs font-semibold text-slate-700">Drag & Drop atau paste gambar soal di sini</p>
-                                </div>
-                            </template>
-                            <template x-if="newSoal.img">
-                                <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200">
-                                    <img :src="newSoal.img" class="h-16 object-contain rounded">
-                                    <button type="button" @click="newSoal.img = ''" class="text-xs text-rose-600 font-semibold px-3 py-1">Hapus Gambar</button>
-                                </div>
-                            </template>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <input type="text" x-model="newSoal.a" placeholder="Pilihan A" required class="border border-slate-300 rounded-xl px-3 py-2 text-xs bg-slate-50">
-                            <input type="text" x-model="newSoal.b" placeholder="Pilihan B" required class="border border-slate-300 rounded-xl px-3 py-2 text-xs bg-slate-50">
-                            <input type="text" x-model="newSoal.c" placeholder="Pilihan C" required class="border border-slate-300 rounded-xl px-3 py-2 text-xs bg-slate-50">
-                            <input type="text" x-model="newSoal.d" placeholder="Pilihan D" required class="border border-slate-300 rounded-xl px-3 py-2 text-xs bg-slate-50">
-                        </div>
-                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2.5 px-6 rounded-xl transition shadow-sm">Simpan Soal ke Database</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </template>
-
-    <!-- ADMIN LOGIN MODAL -->
-    <div x-show="openAdminModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-xs px-4" x-cloak>
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200">
-            <h3 class="text-base font-bold text-slate-900 mb-1">Login Admin / Pengajar</h3>
-            <p class="text-slate-500 text-xs mb-4">Autentikasi diverifikasi langsung di server Google Apps Script.</p>
-            <form @submit.prevent="handleAdminLogin" class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Email Admin</label>
-                    <input type="email" x-model="adminEmailInput" placeholder="admin@bimbel.com" required class="w-full border border-slate-300 bg-slate-50 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Password / PIN Admin</label>
-                    <input type="password" x-model="adminPassInput" placeholder="••••••••" required class="w-full border border-slate-300 bg-slate-50 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-indigo-600 focus:outline-none">
-                </div>
-                <div x-show="adminLoginError" class="text-rose-600 text-xs font-medium bg-rose-50 border border-rose-200 p-2.5 rounded-xl" x-text="adminLoginError"></div>
-                <div class="flex space-x-2 pt-2">
-                    <button type="button" @click="openAdminModal = false; adminLoginError = ''" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition">Batal</button>
-                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2.5 rounded-xl transition shadow-sm">Masuk</button>
-                </div>
-            </form>
-        </div>
+      </template>
+      <template x-if="activeLesson.tipe !== 'youtube'">
+        <div class="text-center py-12 rounded-3xl bg-sky-50"><div class="text-7xl hop" style="display:inline-block;animation:hop 1.6s infinite">📄</div>
+          <a :href="activeLesson.url" target="_blank" rel="noopener" class="btn btn-blue mt-6">Buka dokumen materi</a></div>
+      </template>
+      <h2 class="text-2xl mt-5" x-text="activeLesson.judul"></h2>
+      <p class="text-slate-500 text-sm mt-1" x-text="activeLesson.deskripsi || 'Materi pembelajaran kurikulum utama.'"></p>
+      <div class="flex flex-wrap gap-3 mt-5">
+        <button class="btn" @click="finishMateri()" x-text="isDone(activeLesson) ? 'Sudah selesai ✓' : 'Aku sudah paham! +10 XP'"></button>
+        <a x-show="activeLesson.tipe === 'youtube'" :href="activeLesson.url" target="_blank" rel="noopener" class="btn btn-ghost">Buka di YouTube</a>
+      </div>
     </div>
+  </main>
+  </template>
 
-    <!-- Alpine State & App Logic -->
+  <!-- Quiz -->
+  <template x-if="activeLesson && activeLesson.type === 'quiz'">
+  <div class="fixed inset-0 z-40 bg-[var(--bg)] flex flex-col">
+    <template x-if="!quizResult">
+    <div class="flex flex-col h-full">
+      <div class="px-4 py-4 flex items-center gap-3 max-w-2xl w-full mx-auto">
+        <button class="btn btn-ghost btn-sm" @click="closeLesson()" aria-label="Keluar dari kuis">✕</button>
+        <div class="bar flex-1"><div class="fill" :style="'width:' + ((quizStep + (checked ? 1 : 0)) / activeLesson.soal.length * 100) + '%'"></div></div>
+        <span x-show="combo > 1" class="pop fd text-orange-500 text-lg" x-text="'🔥 ' + combo"></span>
+      </div>
+      <div class="flex-1 overflow-y-auto px-4 pb-56">
+        <template x-for="n in [quizStep]" :key="n">
+        <div class="max-w-2xl mx-auto">
+          <p class="text-sm text-slate-400 mt-2" x-text="'Soal ' + (quizStep + 1) + ' dari ' + activeLesson.soal.length"></p>
+          <h2 class="text-2xl sm:text-3xl mb-5" x-text="current.tanya"></h2>
+          <template x-if="current.img"><div class="clay-sm p-2 mb-5 flex justify-center"><img :src="current.img" class="max-h-60 object-contain rounded-2xl" alt=""></div></template>
+          <div class="space-y-4">
+            <template x-for="(opt, k, oi) in current.opsi" :key="k">
+              <button class="opt" :style="'animation-delay:' + (oi * 70) + 'ms'" :disabled="checked" @click="pick(k)"
+                :class="checked ? (k === current.kunci ? 'right' : (picked === k ? 'wrong' : 'dim')) : (picked === k ? 'sel' : '')">
+                <span class="k" x-text="k.toUpperCase()"></span><span x-text="opt"></span>
+              </button>
+            </template>
+          </div>
+        </div>
+        </template>
+      </div>
+      <div class="sheet" :class="!checked ? 'idle' : (isCorrect ? 'ok' : 'no')">
+        <div class="max-w-2xl mx-auto px-4 py-5 flex items-center gap-4">
+          <div x-show="checked" class="slide-up flex items-center gap-3 flex-1 min-w-0">
+            <span class="text-4xl" x-text="isCorrect ? '🎉' : '🤔'"></span>
+            <div class="min-w-0"><div class="fd text-xl" x-text="isCorrect ? 'Hebat sekali!' : 'Hampir benar!'"></div>
+              <div x-show="!isCorrect" class="text-sm" x-text="'Jawaban benar: ' + current.kunci.toUpperCase() + '. ' + current.opsi[current.kunci]"></div></div>
+          </div>
+          <button x-show="!checked" class="btn ml-auto" :disabled="!picked" @click="checkAnswer()">Periksa</button>
+          <button x-show="checked" class="btn" :class="isCorrect ? '' : 'btn-red'" @click="nextQuestion()" x-text="quizStep < activeLesson.soal.length - 1 ? 'Lanjut' : 'Selesai'"></button>
+        </div>
+      </div>
+    </div>
+    </template>
+
+    <template x-if="quizResult">
+    <div class="flex-1 flex items-center justify-center px-4 overflow-y-auto">
+      <div class="clay max-w-md w-full p-8 text-center pop" :class="quizResult.score >= 60 ? 'happy-jump' : 'sad'">
+        <div class="w-32 mx-auto" x-html="mascot"></div>
+        <h2 class="text-3xl mt-2" x-text="quizResult.score >= 60 ? 'Kamu keren banget!' : 'Ayo coba lagi!'"></h2>
+        <div class="flex justify-center my-2"><template x-for="n in [1,2,3]"><span class="star" :class="n <= quizResult.stars && 'on'" :style="'--d:' + (n * 250) + 'ms'">⭐</span></template></div>
+        <p class="fd text-5xl" style="color:var(--g)" x-text="quizResult.score"></p>
+        <p class="text-slate-500 mt-1" x-text="quizResult.correct + ' dari ' + quizResult.total + ' benar  •  +' + (quizResult.correct * 10) + ' XP'"></p>
+        <div class="flex gap-3 mt-6"><button class="btn btn-ghost flex-1" @click="selectLesson(activeLesson, 'quiz')">Ulangi</button><button class="btn flex-1" @click="closeLesson()">Ke peta</button></div>
+      </div>
+    </div>
+    </template>
+  </div>
+  </template>
+</div>
+</template>
+
+<!-- ============ 3. ADMIN ============ -->
+<template x-if="session.loggedIn && session.role === 'admin'">
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div class="flex items-center gap-4"><div class="w-16" x-html="mascot"></div>
+      <div><h2 class="text-2xl sm:text-3xl">Ruang Kak Riki</h2><p class="text-sm text-slate-500">Kelola kurikulum, siswa dengan auto-PIN, dan rekap nilai.</p></div></div>
+    <div class="flex gap-3"><button @click="fetchLiveData()" class="btn btn-blue btn-sm">🔄 Sinkronisasi Sheets</button><button @click="logout()" class="btn btn-ghost btn-sm">Keluar</button></div>
+  </div>
+
+  <div class="flex gap-3 mb-8 overflow-x-auto pb-3 px-1">
+    <button class="tab" :class="adminTab === 'eksekutif' && 'on'" @click="adminTab = 'eksekutif'">📊 Rekap</button>
+    <button class="tab" :class="adminTab === 'siswa' && 'on'" @click="adminTab = 'siswa'">🧒 Kelola Siswa</button>
+    <button class="tab" :class="adminTab === 'materi' && 'on'" @click="adminTab = 'materi'">🎬 Input Materi</button>
+    <button class="tab" :class="adminTab === 'quiz' && 'on'" @click="adminTab = 'quiz'">⭐ Input Soal</button>
+  </div>
+
+  <div x-show="adminTab === 'eksekutif'" class="pop">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+      <div class="clay p-5 flex items-center gap-4"><span class="text-4xl">🧒</span><div><div class="text-sm text-slate-400">Siswa aktif</div><div class="fd text-4xl" style="color:var(--b)" x-text="studentsList.length"></div></div></div>
+      <div class="clay p-5 flex items-center gap-4"><span class="text-4xl">🎬</span><div><div class="text-sm text-slate-400">Modul materi</div><div class="fd text-4xl" style="color:var(--g)" x-text="materiList.length"></div></div></div>
+      <div class="clay p-5 flex items-center gap-4"><span class="text-4xl">🏆</span><div><div class="text-sm text-slate-400">Riwayat quiz</div><div class="fd text-4xl" style="color:var(--p)" x-text="rekapList.length"></div></div></div>
+    </div>
+    <div class="clay overflow-hidden">
+      <div class="p-5 flex items-center justify-between"><h3 class="text-xl">Rekap nilai siswa</h3><button @click="exportCSV()" class="btn btn-yellow btn-sm">Unduh CSV</button></div>
+      <div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Nama siswa</th><th>Kelas</th><th>Judul quiz</th><th>Skor</th><th>Waktu</th></tr></thead>
+        <tbody><template x-for="(r, idx) in rekapList" :key="idx"><tr><td x-text="r.nama"></td><td x-text="r.kelas"></td><td x-text="r.quizJudul"></td><td><span class="pill" style="color:var(--gs)" x-text="r.skor"></span></td><td class="text-slate-400" x-text="r.timestamp"></td></tr></template></tbody></table></div>
+    </div>
+  </div>
+
+  <div x-show="adminTab === 'siswa'" class="pop">
+    <div class="clay p-6 mb-8"><h3 class="text-xl mb-4">Tambah siswa baru (PIN otomatis)</h3>
+      <form @submit.prevent="addStudent" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <input type="text" x-model="newStudent.name" placeholder="Nama lengkap siswa" required class="inp">
+        <input type="text" x-model="newStudent.kelas" placeholder="Kelas (contoh: 12-IPA)" required class="inp">
+        <button type="submit" class="btn">Buat PIN & simpan</button></form></div>
+    <div class="clay overflow-hidden"><div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Nama siswa</th><th>Kelas</th><th>PIN</th><th class="text-right">Aksi</th></tr></thead>
+      <tbody><template x-for="s in studentsList" :key="s.id"><tr><td x-text="s.name"></td><td x-text="s.kelas"></td><td class="font-mono text-lg" style="color:var(--b)" x-text="s.pin"></td>
+        <td class="text-right"><button @click="copyPin(s.pin, s.name)" class="btn btn-ghost btn-sm">📋 Salin undangan</button></td></tr></template></tbody></table></div></div>
+  </div>
+
+  <div x-show="adminTab === 'materi'" class="pop">
+    <div class="clay p-6"><h3 class="text-xl mb-4">Terbitkan materi baru</h3>
+      <form @submit.prevent="addMateri" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <input type="text" x-model="newMateri.judul" placeholder="Judul materi" required class="inp">
+          <input type="text" x-model="newMateri.kelas" placeholder="Target kelas (contoh: 12-IPA atau ALL)" required class="inp">
+          <select x-model="newMateri.tipe" class="inp"><option value="youtube">YouTube Unlisted URL</option><option value="pdf">Google Drive PDF / File Link</option></select>
+          <input type="url" x-model="newMateri.url" placeholder="Tempel URL (YouTube / Drive)" required class="inp">
+        </div>
+        <div @dragover.prevent @dragleave.prevent @drop.prevent="handleMaterialFileDrop($event)" class="drop"><div class="text-4xl">☁️</div>
+          <p class="text-sm">Seret file materi ke sini</p><p class="text-xs text-slate-400 mt-1" x-text="newMateri.fileName ? 'File terpilih: ' + newMateri.fileName : 'PDF, DOCX, ZIP (maks 10MB)'"></p></div>
+        <input type="text" x-model="newMateri.deskripsi" placeholder="Deskripsi singkat materi..." class="inp">
+        <button type="submit" class="btn">Terbitkan ke siswa</button>
+      </form></div>
+  </div>
+
+  <div x-show="adminTab === 'quiz'" class="pop">
+    <div class="clay p-6"><h3 class="text-xl mb-4">Tambah soal quiz (bisa pakai gambar)</h3>
+      <form @submit.prevent="addSoal" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <input type="text" x-model="newSoal.quizJudul" placeholder="Judul paket quiz" required class="inp">
+          <select x-model="newSoal.kunci" class="inp"><option value="a">Kunci jawaban: A</option><option value="b">Kunci jawaban: B</option><option value="c">Kunci jawaban: C</option><option value="d">Kunci jawaban: D</option></select>
+        </div>
+        <textarea x-model="newSoal.tanya" rows="2" placeholder="Tulis pertanyaan di sini..." required class="inp"></textarea>
+        <div @dragover.prevent @dragleave.prevent @drop.prevent="handleQuizImageDrop($event)" class="drop">
+          <template x-if="!newSoal.img"><div><div class="text-4xl">🖼️</div><p class="text-sm">Seret gambar soal ke sini</p></div></template>
+          <template x-if="newSoal.img"><div class="flex items-center justify-between"><img :src="newSoal.img" class="h-16 object-contain rounded-xl" alt=""><button type="button" @click="newSoal.img = ''" class="btn btn-red btn-sm">Hapus gambar</button></div></template>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <input type="text" x-model="newSoal.a" placeholder="Pilihan A" required class="inp"><input type="text" x-model="newSoal.b" placeholder="Pilihan B" required class="inp">
+          <input type="text" x-model="newSoal.c" placeholder="Pilihan C" required class="inp"><input type="text" x-model="newSoal.d" placeholder="Pilihan D" required class="inp">
+        </div>
+        <button type="submit" class="btn btn-purple">Simpan soal</button>
+      </form></div>
+  </div>
+</div>
+</template>
+
+<!-- Admin login modal -->
+<div x-show="openAdminModal" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center bg-sky-900/30 backdrop-blur-sm px-4">
+  <div class="clay max-w-sm w-full p-6 pop">
+    <h3 class="text-2xl mb-1">Masuk pengajar</h3><p class="text-sm text-slate-500 mb-5">Diverifikasi langsung di server Google Apps Script.</p>
+    <form @submit.prevent="handleAdminLogin" class="space-y-4">
+      <div><label class="lbl">Email admin</label><input type="email" x-model="adminEmailInput" placeholder="admin@bimbel.com" required class="inp"></div>
+      <div><label class="lbl">Password / PIN admin</label><input type="password" x-model="adminPassInput" placeholder="••••••••" required class="inp"></div>
+      <div x-show="adminLoginError" x-cloak class="shake bg-rose-50 text-rose-600 text-sm p-3 rounded-2xl" x-text="adminLoginError"></div>
+      <div class="flex gap-3 pt-1"><button type="button" @click="openAdminModal = false; adminLoginError = ''" class="btn btn-ghost flex-1">Batal</button><button type="submit" class="btn flex-1">Masuk</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- Alpine State & App Logic -->
     <script>
-        function bimbelApp() {
+        const MASCOT = `<svg viewBox="0 0 120 124" class="mascot" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><ellipse cx="60" cy="117" rx="34" ry="5" fill="rgba(0,0,0,.12)"/><ellipse cx="38" cy="108" rx="13" ry="7" fill="#FF9600"/><ellipse cx="82" cy="108" rx="13" ry="7" fill="#FF9600"/><path d="M60 14c-3 10-13 13-19 9 4-10 13-14 19-9z" fill="#46A302"/><ellipse cx="60" cy="68" rx="48" ry="42" fill="#46A302"/><ellipse cx="60" cy="63" rx="48" ry="42" fill="#58CC02"/><ellipse cx="42" cy="38" rx="20" ry="8" fill="#fff" opacity=".3" transform="rotate(-20 42 38)"/><ellipse cx="60" cy="90" rx="28" ry="17" fill="#B8F28B"/><g class="eyes"><circle cx="42" cy="58" r="12" fill="#fff"/><circle cx="78" cy="58" r="12" fill="#fff"/><circle cx="44" cy="60" r="6" fill="#3C3C3C"/><circle cx="80" cy="60" r="6" fill="#3C3C3C"/><circle cx="46" cy="57" r="2" fill="#fff"/><circle cx="82" cy="57" r="2" fill="#fff"/></g><circle cx="24" cy="78" r="7" fill="#FF9AA2" opacity=".7"/><circle cx="96" cy="78" r="7" fill="#FF9AA2" opacity=".7"/><path class="m-happy" d="M50 76q10 13 20 0z" fill="#8B2E2E" stroke="#8B2E2E" stroke-width="3" stroke-linejoin="round"/><path class="m-sad" d="M50 84q10-11 20 0" fill="none" stroke="#8B2E2E" stroke-width="4" stroke-linecap="round"/></svg>`;
+        let _ac;
+                function bimbelApp() {
             return {
                 apiUrl: 'https://script.google.com/macros/s/AKfycbz_GqDLroOxzbtr3CL5at1V9lm0-4MBNDscp7DEhep8r0L8UzaY2S65mTLSppQV9mDs/exec',
                 loading: false,
@@ -483,6 +352,51 @@
                 adminLoginError: '',
                 activeLesson: null,
                 quizAnswers: {},
+                mascot: MASCOT, xp: 0, xpBump: false, done: {},
+                quizStep: 0, picked: '', checked: false, isCorrect: false, quizResult: null, combo: 0,
+
+                get pathItems() { return [...this.materiList.map(m => ({ ...m, type: 'materi' })), ...this.quizList.map(q => ({ ...q, type: 'quiz' }))]; },
+                get doneCount() { return this.pathItems.filter(i => this.isDone(i)).length; },
+                get nextItem() { return this.pathItems.find(i => !this.isDone(i)); },
+                get current() { return this.activeLesson && this.activeLesson.soal ? this.activeLesson.soal[this.quizStep] : null; },
+                isDone(it) { return !!this.done[it.type + it.id]; },
+                addXp(n) { this.xp += n; this.xpBump = true; setTimeout(() => this.xpBump = false, 500); },
+                closeLesson() { this.activeLesson = null; this.quizResult = null; },
+                finishMateri() {
+                    const k = 'materi' + this.activeLesson.id;
+                    if (!this.done[k]) { this.done[k] = true; this.addXp(10); this.confetti(36); this.sfx('ok'); this.notify('Mantap! Kamu dapat +10 XP'); }
+                    this.closeLesson();
+                },
+                pick(k) { if (this.checked) return; this.picked = k; this.quizAnswers[this.quizStep] = k; },
+                checkAnswer() {
+                    if (!this.picked || this.checked) return;
+                    this.isCorrect = this.picked === this.current.kunci;
+                    this.checked = true;
+                    if (this.isCorrect) { this.combo++; this.sfx('ok'); this.confetti(18); } else { this.combo = 0; this.sfx('no'); }
+                },
+                async nextQuestion() {
+                    if (this.quizStep < this.activeLesson.soal.length - 1) { this.quizStep++; this.picked = ''; this.checked = false; }
+                    else { await this.submitQuiz(); }
+                },
+                confetti(n = 30) {
+                    const cols = ['#58CC02', '#1CB0F6', '#FFC800', '#FF4B4B', '#CE82FF', '#FF9600'];
+                    for (let i = 0; i < n; i++) {
+                        const e = document.createElement('i'); e.className = 'cf';
+                        e.style.cssText = `left:${50 + (Math.random() - .5) * 30}vw;background:${cols[i % 6]};--dx:${(Math.random() - .5) * 90}vw;--r:${Math.random() * 720}deg;animation-delay:${Math.random() * .15}s`;
+                        document.body.appendChild(e); setTimeout(() => e.remove(), 1900);
+                    }
+                },
+                sfx(t) {
+                    try {
+                        _ac = _ac || new (window.AudioContext || window.webkitAudioContext)();
+                        (t === 'ok' ? [523, 784] : [220, 165]).forEach((f, i) => {
+                            const o = _ac.createOscillator(), g = _ac.createGain(), s = _ac.currentTime + i * .12;
+                            o.type = t === 'ok' ? 'triangle' : 'sawtooth'; o.frequency.value = f;
+                            g.gain.setValueAtTime(.1, s); g.gain.exponentialRampToValueAtTime(.001, s + .2);
+                            o.connect(g); g.connect(_ac.destination); o.start(s); o.stop(s + .22);
+                        });
+                    } catch (e) {}
+                },
 
                 materiList: [
                     { id: 1, judul: 'Strategi Kilat Turunan & Integral', tipe: 'youtube', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', kelas: '12-IPA', deskripsi: 'Paham konsep turunan dalam 10 menit tanpa pusing.' },
@@ -580,7 +494,7 @@
                         const res = await this.postToBackend({ action: 'login', pin: cleanPin });
                         if (res && res.status === 'success') {
                             this.session = { loggedIn: true, role: 'student', name: res.name, kelas: res.kelas };
-                            if (this.materiList.length > 0) this.selectLesson(this.materiList[0], 'materi');
+                            
                             return;
                         } else if (res && res.message) {
                             this.loginError = res.message;
@@ -591,7 +505,7 @@
                     const found = this.studentsList.find(s => s.pin === cleanPin);
                     if (found) {
                         this.session = { loggedIn: true, role: 'student', name: found.name, kelas: found.kelas };
-                        if (this.materiList.length > 0) this.selectLesson(this.materiList[0], 'materi');
+                        
                     } else {
                         this.loginError = 'PIN tidak terdaftar. Hubungi admin bimbel Anda.';
                     }
@@ -624,12 +538,13 @@
                 logout() {
                     this.session = { loggedIn: false, role: '', name: '', kelas: '' };
                     this.pinInput = '';
-                    this.activeLesson = null;
+                    this.activeLesson = null; this.quizResult = null; this.xp = 0; this.done = {};
                 },
 
                 selectLesson(item, type) {
                     this.activeLesson = { ...item, type };
                     this.quizAnswers = {};
+                    this.quizStep = 0; this.picked = ''; this.checked = false; this.isCorrect = false; this.quizResult = null; this.combo = 0;
                 },
 
                 convertToEmbed(url) {
@@ -666,12 +581,17 @@
 
                     this.rekapList.unshift({
                         id: Date.now(),
+                        nama: this.session.name,
+                        kelas: this.session.kelas,
                         quizJudul: this.activeLesson.judul,
                         skor: finalScore,
                         timestamp: nowStr
                     });
 
-                    this.notify(`Quiz Selesai! Skor Anda: ${finalScore}. Tercatat di sistem.`);
+                    this.quizResult = { score: finalScore, correct: correctCount, total, stars: finalScore >= 90 ? 3 : finalScore >= 60 ? 2 : 1 };
+                    this.done['quiz' + this.activeLesson.id] = true;
+                    this.addXp(correctCount * 10);
+                    if (finalScore >= 60) { this.confetti(70); this.sfx('ok'); }
                 },
 
                 async addStudent() {
