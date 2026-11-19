@@ -41,7 +41,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .node{width:92px;height:92px;border-radius:50%;font-size:2.4rem;display:grid;place-items:center;position:relative;cursor:pointer;color:#fff;
  background:var(--c);box-shadow:inset 0 10px 12px rgba(255,255,255,.4),inset 0 -10px 0 rgba(0,0,0,.1),0 10px 0 var(--s),0 20px 24px rgba(0,0,0,.16);transition:transform .15s,box-shadow .15s}
 .node:hover{transform:translateY(-4px) rotate(-4deg) scale(1.05)}.node:active{transform:translateY(8px);box-shadow:inset 0 10px 12px rgba(255,255,255,.3),inset 0 -6px 0 rgba(0,0,0,.1),0 2px 0 var(--s)}
-.n-green{--c:var(--g);--s:var(--gs)}.n-blue{--c:var(--b);--s:var(--bs)}.n-purple{--c:var(--p);--s:var(--ps)}
+.n-orange{--c:#FF9600;--s:#D97E00}.n-green{--c:var(--g);--s:var(--gs)}.n-blue{--c:var(--b);--s:var(--bs)}.n-purple{--c:var(--p);--s:var(--ps)}
 .node.is-done{--c:var(--y);--s:var(--ys)}
 .tick{position:absolute;right:-6px;top:-6px;width:32px;height:32px;border-radius:50%;background:#fff;color:var(--g);font-size:1.1rem;display:grid;place-items:center;box-shadow:0 3px 0 var(--edge),0 6px 10px rgba(0,0,0,.15);animation:pop .4s}
 .start{position:absolute;left:50%;top:-52px;transform:translateX(-50%);background:#fff;color:var(--g);font-family:'Baloo 2';font-weight:800;padding:6px 16px;border-radius:16px;box-shadow:0 4px 0 var(--edge),0 8px 12px rgba(0,0,0,.12);animation:hop 1.1s ease-in-out infinite;white-space:nowrap}
@@ -147,13 +147,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <div class="flex flex-col items-center mb-10" :style="'transform:translateX(' + [0, 50, 0, -50][i % 4] + 'px)'">
           <div class="relative">
             <div class="start" x-show="nextItem && nextItem.type === it.type && nextItem.id === it.id">Mulai di sini!</div>
-            <button class="node" :class="[it.type === 'quiz' ? 'n-purple' : (it.tipe === 'youtube' ? 'n-green' : 'n-blue'), isDone(it) && 'is-done']" :aria-label="it.judul" @click="selectLesson(it, it.type)">
-              <span x-text="it.type === 'quiz' ? '⭐' : (it.tipe === 'youtube' ? '🎬' : '📄')"></span>
+            <button class="node" :class="[nodeColor(it), isDone(it) && 'is-done']" :aria-label="it.judul" @click="selectLesson(it, it.type)">
+              <span x-text="nodeIcon(it)"></span>
               <b class="tick" x-show="isDone(it)">✓</b>
             </button>
           </div>
           <div class="mt-4 text-center text-sm max-w-[11rem] fd" x-text="it.judul"></div>
-          <div class="text-xs text-slate-400" x-text="it.type === 'quiz' ? it.soal.length + ' soal seru' : (it.tipe === 'youtube' ? 'Video' : 'Dokumen')"></div>
+          <div class="text-xs text-slate-400" x-text="it.type === 'quiz' ? it.soal.length + ' soal seru' : tipeLabel(it)"></div>
         </div>
       </template>
     </div>
@@ -170,15 +170,24 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <iframe :src="convertToEmbed(activeLesson.url)" class="w-full h-full" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
       </template>
-      <template x-if="activeLesson.tipe !== 'youtube'">
-        <div class="text-center py-12 rounded-3xl bg-sky-50"><div class="text-7xl hop" style="display:inline-block;animation:hop 1.6s infinite">📄</div>
-          <a :href="activeLesson.url" target="_blank" rel="noopener" class="btn btn-blue mt-6">Buka dokumen materi</a></div>
+      <template x-if="activeLesson.tipe === 'gambar'">
+        <div class="rounded-3xl bg-sky-50 p-2 flex justify-center"><img :src="imageUrl(activeLesson.url)" :alt="activeLesson.judul" class="max-h-[70vh] w-auto rounded-2xl object-contain"></div>
+      </template>
+      <template x-if="activeLesson.tipe === 'html'">
+        <div class="relative h-[70vh] rounded-3xl overflow-hidden bg-white" style="border:4px solid #D7ECF9">
+          <div x-show="htmlLoading" class="absolute inset-0 grid place-items-center bg-white"><div class="dots"><i style="background:var(--g)"></i><i style="background:var(--b)"></i><i style="background:var(--y)"></i></div></div>
+          <iframe sandbox="allow-scripts allow-forms allow-popups" :src="htmlSrc || null" :srcdoc="htmlDoc || null" :title="activeLesson.judul" class="w-full h-full"></iframe>
+        </div>
+      </template>
+      <template x-if="isDocTipe(activeLesson.tipe)">
+        <div class="h-[70vh] rounded-3xl overflow-hidden bg-slate-100" style="border:4px solid #D7ECF9"><iframe :src="previewUrl(activeLesson.url)" :title="activeLesson.judul" class="w-full h-full" allow="autoplay"></iframe></div>
       </template>
       <h2 class="text-2xl mt-5" x-text="activeLesson.judul"></h2>
       <p class="text-slate-500 text-sm mt-1" x-text="activeLesson.deskripsi || 'Materi pembelajaran kurikulum utama.'"></p>
       <div class="flex flex-wrap gap-3 mt-5">
         <button class="btn" @click="finishMateri()" x-text="isDone(activeLesson) ? 'Sudah selesai ✓' : 'Aku sudah paham! +10 XP'"></button>
         <a x-show="activeLesson.tipe === 'youtube'" :href="activeLesson.url" target="_blank" rel="noopener" class="btn btn-ghost">Buka di YouTube</a>
+        <a x-show="activeLesson.tipe !== 'youtube' && activeLesson.tipe !== 'html'" :href="activeLesson.tipe === 'gambar' ? imageUrl(activeLesson.url) : activeLesson.url" target="_blank" rel="noopener" class="btn btn-ghost">Buka di tab baru</a>
       </div>
     </div>
   </main>
@@ -288,11 +297,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input type="text" x-model="newMateri.judul" placeholder="Judul materi" required class="inp">
           <input type="text" x-model="newMateri.kelas" placeholder="Target kelas (contoh: 12-IPA atau ALL)" required class="inp">
-          <select x-model="newMateri.tipe" class="inp"><option value="youtube">YouTube Unlisted URL</option><option value="pdf">Google Drive PDF / File Link</option></select>
-          <input type="url" x-model="newMateri.url" placeholder="Tempel URL (YouTube / Drive)" required class="inp">
+          <select x-model="newMateri.tipe" class="inp"><option value="youtube">🎬 Video YouTube</option><option value="pdf">📕 PDF</option><option value="dokumen">📄 Dokumen (Word, PPT, Excel, Google Docs)</option><option value="gambar">🖼️ Gambar</option><option value="html">🧩 Halaman HTML interaktif</option></select>
+          <input type="url" x-model="newMateri.url" @input="newMateri.fileData = ''; newMateri.fileName = ''" placeholder="Tempel URL (YouTube / Drive) atau unggah file di bawah" :required="!newMateri.fileData" class="inp">
         </div>
-        <div @dragover.prevent @dragleave.prevent @drop.prevent="handleMaterialFileDrop($event)" class="drop"><div class="text-4xl">☁️</div>
-          <p class="text-sm">Seret file materi ke sini</p><p class="text-xs text-slate-400 mt-1" x-text="newMateri.fileName ? 'File terpilih: ' + newMateri.fileName : 'PDF, DOCX, ZIP (maks 10MB)'"></p></div>
+        <div @click="$refs.matFile.click()" @keydown.enter="$refs.matFile.click()" tabindex="0" role="button" @dragover.prevent @dragleave.prevent @drop.prevent="handleMaterialFileDrop($event)" class="drop"><div class="text-4xl">☁️</div>
+          <p class="text-sm">Seret file ke sini atau klik untuk memilih</p><p class="text-xs text-slate-400 mt-1" x-text="newMateri.fileName ? 'File terpilih: ' + newMateri.fileName : 'PDF, Word/PPT/Excel, gambar, atau HTML (maks 10MB)'"></p></div>
+        <input type="file" x-ref="matFile" class="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.html,.htm,image/*" @change="handleMaterialFilePick($event)">
         <input type="text" x-model="newMateri.deskripsi" placeholder="Deskripsi singkat materi..." class="inp">
         <button type="submit" class="btn">Terbitkan ke siswa</button>
       </form></div>
@@ -364,6 +374,33 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 get doneCount() { return this.pathItems.filter(i => this.isDone(i)).length; },
                 get nextItem() { return this.pathItems.find(i => !this.isDone(i)); },
                 get current() { return this.activeLesson && this.activeLesson.soal ? this.activeLesson.soal[this.quizStep] : null; },
+                nodeColor(it) { return it.type === 'quiz' ? 'n-purple' : ({ youtube: 'n-green', gambar: 'n-orange', html: 'n-orange' }[it.tipe] || 'n-blue'); },
+                nodeIcon(it) { return it.type === 'quiz' ? '⭐' : ({ youtube: '🎬', gambar: '🖼️', html: '🧩' }[it.tipe] || '📄'); },
+                tipeLabel(it) { return { youtube: 'Video', pdf: 'PDF', gambar: 'Gambar', html: 'Halaman interaktif' }[it.tipe] || 'Dokumen'; },
+                isDocTipe(t) { return !['youtube', 'gambar', 'html'].includes(t); },
+                driveId(url) { const m = (url || '').match(/\/d\/([\w-]{15,})|[?&]id=([\w-]{15,})/); return m ? (m[1] || m[2]) : ''; },
+                previewUrl(url) {
+                    if (!url) return '';
+                    const g = url.match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([\w-]+)/);
+                    if (g) return `https://docs.google.com/${g[1]}/d/${g[2]}/${g[1] === 'presentation' ? 'embed' : 'preview'}`;
+                    const id = this.driveId(url);
+                    return id && /drive\.google\.com/.test(url) ? `https://drive.google.com/file/d/${id}/preview` : url;
+                },
+                imageUrl(url) {
+                    if (!url || /googleusercontent\.com/.test(url)) return url;
+                    const id = this.driveId(url);
+                    return id && /drive\.google\.com/.test(url) ? `https://lh3.googleusercontent.com/d/${id}` : url;
+                },
+                async loadHtmlMateri(item) {
+                    const id = this.driveId(item.url);
+                    if (!id || !this.apiUrl) { this.htmlSrc = item.url; return; }
+                    this.htmlLoading = true;
+                    const res = await this.postToBackend({ action: 'getHtml', fileId: id }, true);
+                    if (this.activeLesson && this.activeLesson.id === item.id) {
+                        this.htmlDoc = (res && res.status === 'success') ? res.html : '<p style="font-family:sans-serif;padding:24px">Materi belum bisa dimuat. Coba lagi ya.</p>';
+                        this.htmlLoading = false;
+                    }
+                },
                 itemKey(it) { return it.type === 'quiz' ? 'quiz:' + it.judul : 'materi:' + it.id; },
                 isDone(it) { return this.done[this.itemKey(it)] !== undefined; },
                 persist() {
@@ -463,7 +500,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     { id: 2, name: 'Siti Aminah', kelas: '12-IPA', pin: '392011' }
                 ],
                 newStudent: { name: '', kelas: '' },
-                newMateri: { judul: '', kelas: '', tipe: 'youtube', url: '', deskripsi: '', fileName: '' },
+                newMateri: { judul: '', kelas: '', tipe: 'youtube', url: '', deskripsi: '', fileName: '', fileData: '' },
+                htmlDoc: '', htmlSrc: '', htmlLoading: false,
                 newSoal: { quizJudul: 'Latihan Ulangan Harian Turunan', tanya: '', img: '', a: '', b: '', c: '', d: '', kunci: 'a' },
 
                 initApp() {
@@ -598,6 +636,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     this.activeLesson = { ...item, type };
                     this.quizAnswers = {};
                     this.quizStep = 0; this.picked = ''; this.checked = false; this.isCorrect = false; this.quizResult = null; this.combo = 0;
+                    this.htmlDoc = ''; this.htmlSrc = ''; this.htmlLoading = false;
+                    if (type === 'materi' && item.tipe === 'html') this.loadHtmlMateri(item);
                 },
 
                 convertToEmbed(url) {
@@ -664,18 +704,22 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         judul: this.newMateri.judul,
                         kelas: this.newMateri.kelas,
                         tipe: this.newMateri.tipe,
-                        url: this.newMateri.url,
+                        url: this.newMateri.fileData || this.newMateri.url,
                         fileName: this.newMateri.fileName,
                         deskripsi: this.newMateri.deskripsi || 'Materi pembelajaran baru.'
                     };
+                    let newId = Date.now();
 
                     if (this.apiUrl) {
                         const res = await this.postToBackend(payload);
+                        if (res && res.status === 'error') { this.notify(res.message || 'Gagal menerbitkan materi.'); return; }
                         if (res && res.url) payload.url = res.url;
+                        if (res && res.id) newId = res.id;
                     }
 
-                    this.materiList.push({ id: Date.now(), ...payload });
-                    this.newMateri = { judul: '', kelas: '', tipe: 'youtube', url: '', deskripsi: '', fileName: '' };
+                    const { action, ...item } = payload;
+                    this.materiList.push({ id: newId, ...item });
+                    this.newMateri = { judul: '', kelas: '', tipe: 'youtube', url: '', deskripsi: '', fileName: '', fileData: '' };
                     this.notify('Materi berhasil diterbitkan & tersimpan di Google Drive!');
                 },
 
@@ -711,19 +755,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     this.notify('Soal berhasil ditambahkan ke bank quiz!');
                 },
 
-                handleMaterialFileDrop(e) {
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        const file = files[0];
-                        this.newMateri.fileName = file.name;
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            this.newMateri.url = event.target.result;
-                            this.notify(`File ${file.name} berhasil dimuat.`);
-                        };
-                        reader.readAsDataURL(file);
-                    }
+                loadMateriFile(file) {
+                    if (!file) return;
+                    if (file.size > 10 * 1024 * 1024) { this.notify('File terlalu besar, maksimal 10MB.'); return; }
+                    const ext = (file.name.split('.').pop() || '').toLowerCase();
+                    this.newMateri.tipe = ext === 'pdf' ? 'pdf' : (['html', 'htm'].includes(ext) ? 'html' : (file.type.startsWith('image/') ? 'gambar' : 'dokumen'));
+                    this.newMateri.fileName = file.name;
+                    this.newMateri.url = '';
+                    const reader = new FileReader();
+                    reader.onload = (ev) => { this.newMateri.fileData = ev.target.result; this.notify(`File ${file.name} siap diterbitkan.`); };
+                    reader.readAsDataURL(file);
                 },
+
+                handleMaterialFileDrop(e) { this.loadMateriFile(e.dataTransfer.files[0]); },
+                handleMaterialFilePick(e) { this.loadMateriFile(e.target.files[0]); e.target.value = ''; },
 
                 handleQuizImageDrop(e) {
                     const files = e.dataTransfer.files;
