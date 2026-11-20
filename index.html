@@ -165,29 +165,37 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   <main class="max-w-3xl mx-auto px-4 pt-6 pop">
     <button @click="closeLesson()" class="btn btn-ghost btn-sm mb-4">← Kembali ke peta</button>
     <div class="clay p-4 sm:p-6">
-      <template x-if="activeLesson.tipe === 'youtube'">
-        <div class="aspect-video rounded-3xl overflow-hidden bg-slate-900" style="box-shadow:inset 0 6px 14px rgba(0,0,0,.4)">
-          <iframe :src="convertToEmbed(activeLesson.url)" class="w-full h-full" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      <template x-if="vid(activeLesson)">
+        <div>
+          <div class="fd text-lg mb-2">🎬 Video</div>
+          <div class="aspect-video rounded-3xl overflow-hidden bg-slate-900" style="box-shadow:inset 0 6px 14px rgba(0,0,0,.4)">
+            <iframe :src="convertToEmbed(vid(activeLesson))" class="w-full h-full" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
         </div>
       </template>
-      <template x-if="activeLesson.tipe === 'gambar'">
-        <div class="rounded-3xl bg-sky-50 p-2 flex justify-center"><img :src="imageUrl(activeLesson.url)" :alt="activeLesson.judul" class="max-h-[70vh] w-auto rounded-2xl object-contain"></div>
-      </template>
-      <template x-if="activeLesson.tipe === 'html'">
-        <div class="relative h-[70vh] rounded-3xl overflow-hidden bg-white" style="border:4px solid #D7ECF9">
-          <div x-show="htmlLoading" class="absolute inset-0 grid place-items-center bg-white"><div class="dots"><i style="background:var(--g)"></i><i style="background:var(--b)"></i><i style="background:var(--y)"></i></div></div>
-          <iframe sandbox="allow-scripts allow-forms allow-popups" :src="htmlSrc || null" :srcdoc="htmlDoc || null" :title="activeLesson.judul" class="w-full h-full"></iframe>
+      <template x-if="fileTipe(activeLesson)">
+        <div class="mt-6">
+          <div class="fd text-lg mb-2">📚 Materi bacaan</div>
+          <template x-if="fileTipe(activeLesson) === 'gambar'">
+            <div class="rounded-3xl bg-sky-50 p-2 flex justify-center"><img :src="imageUrl(fileUrl(activeLesson))" :alt="activeLesson.judul" class="max-h-[70vh] w-auto rounded-2xl object-contain"></div>
+          </template>
+          <template x-if="fileTipe(activeLesson) === 'html'">
+            <div class="relative h-[70vh] rounded-3xl overflow-hidden bg-white" style="border:4px solid #D7ECF9">
+              <div x-show="htmlLoading" class="absolute inset-0 grid place-items-center bg-white"><div class="dots"><i style="background:var(--g)"></i><i style="background:var(--b)"></i><i style="background:var(--y)"></i></div></div>
+              <iframe sandbox="allow-scripts allow-forms allow-popups" :src="htmlSrc || null" :srcdoc="htmlDoc || null" :title="activeLesson.judul" class="w-full h-full"></iframe>
+            </div>
+          </template>
+          <template x-if="isDocTipe(fileTipe(activeLesson))">
+            <div class="h-[70vh] rounded-3xl overflow-hidden bg-slate-100" style="border:4px solid #D7ECF9"><iframe :src="previewUrl(fileUrl(activeLesson))" :title="activeLesson.judul" class="w-full h-full" allow="autoplay"></iframe></div>
+          </template>
         </div>
-      </template>
-      <template x-if="isDocTipe(activeLesson.tipe)">
-        <div class="h-[70vh] rounded-3xl overflow-hidden bg-slate-100" style="border:4px solid #D7ECF9"><iframe :src="previewUrl(activeLesson.url)" :title="activeLesson.judul" class="w-full h-full" allow="autoplay"></iframe></div>
       </template>
       <h2 class="text-2xl mt-5" x-text="activeLesson.judul"></h2>
       <p class="text-slate-500 text-sm mt-1" x-text="activeLesson.deskripsi || 'Materi pembelajaran kurikulum utama.'"></p>
       <div class="flex flex-wrap gap-3 mt-5">
         <button class="btn" @click="finishMateri()" x-text="isDone(activeLesson) ? 'Sudah selesai ✓' : 'Aku sudah paham! +10 XP'"></button>
-        <a x-show="activeLesson.tipe === 'youtube'" :href="activeLesson.url" target="_blank" rel="noopener" class="btn btn-ghost">Buka di YouTube</a>
-        <a x-show="activeLesson.tipe !== 'youtube' && activeLesson.tipe !== 'html'" :href="activeLesson.tipe === 'gambar' ? imageUrl(activeLesson.url) : activeLesson.url" target="_blank" rel="noopener" class="btn btn-ghost">Buka di tab baru</a>
+        <a x-show="vid(activeLesson)" :href="vid(activeLesson)" target="_blank" rel="noopener" class="btn btn-ghost">Buka di YouTube</a>
+        <a x-show="fileTipe(activeLesson) && fileTipe(activeLesson) !== 'html'" :href="fileTipe(activeLesson) === 'gambar' ? imageUrl(fileUrl(activeLesson)) : fileUrl(activeLesson)" target="_blank" rel="noopener" class="btn btn-ghost">Buka berkas di tab baru</a>
       </div>
     </div>
   </main>
@@ -291,21 +299,46 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <td class="text-right"><button @click="copyPin(s.pin, s.name)" class="btn btn-ghost btn-sm">📋 Salin undangan</button></td></tr></template></tbody></table></div></div>
   </div>
 
-  <div x-show="adminTab === 'materi'" class="pop">
-    <div class="clay p-6"><h3 class="text-xl mb-4">Terbitkan materi baru</h3>
+  <div x-show="adminTab === 'materi'" class="pop space-y-8">
+    <div class="clay p-6" x-ref="formMateri">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <h3 class="text-xl" x-text="newMateri.editId ? '✏️ Edit materi' : 'Terbitkan materi baru'"></h3>
+        <button type="button" x-show="newMateri.editId" @click="cancelEdit()" class="btn btn-ghost btn-sm">Batal edit</button>
+      </div>
       <form @submit.prevent="addMateri" class="space-y-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input type="text" x-model="newMateri.judul" placeholder="Judul materi" required class="inp">
           <input type="text" x-model="newMateri.kelas" placeholder="Target kelas (contoh: 12-IPA atau ALL)" required class="inp">
-          <select x-model="newMateri.tipe" class="inp"><option value="youtube">🎬 Video YouTube</option><option value="pdf">📕 PDF</option><option value="dokumen">📄 Dokumen (Word, PPT, Excel, Google Docs)</option><option value="gambar">🖼️ Gambar</option><option value="html">🧩 Halaman HTML interaktif</option></select>
-          <input type="url" x-model="newMateri.url" @input="newMateri.fileData = ''; newMateri.fileName = ''" placeholder="Tempel URL (YouTube / Drive) atau unggah file di bawah" :required="!newMateri.fileData" class="inp">
         </div>
-        <div @click="$refs.matFile.click()" @keydown.enter="$refs.matFile.click()" tabindex="0" role="button" @dragover.prevent @dragleave.prevent @drop.prevent="handleMaterialFileDrop($event)" class="drop"><div class="text-4xl">☁️</div>
-          <p class="text-sm">Seret file ke sini atau klik untuk memilih</p><p class="text-xs text-slate-400 mt-1" x-text="newMateri.fileName ? 'File terpilih: ' + newMateri.fileName : 'PDF, Word/PPT/Excel, gambar, atau HTML (maks 10MB)'"></p></div>
-        <input type="file" x-ref="matFile" class="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.html,.htm,image/*" @change="handleMaterialFilePick($event)">
+        <div class="rounded-3xl p-4 space-y-2" style="background:#E8F8DA">
+          <div class="fd text-lg">🎬 Video <span class="text-sm text-slate-500 font-semibold">(opsional)</span></div>
+          <input type="url" x-model="newMateri.video" placeholder="Tempel link YouTube (unlisted)" class="inp">
+        </div>
+        <div class="rounded-3xl p-4 space-y-3" style="background:#FFF1DC">
+          <div class="fd text-lg">📚 Berkas materi <span class="text-sm text-slate-500 font-semibold">(opsional, tampil bersama video)</span></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <select x-model="newMateri.tipe" class="inp"><option value="pdf">📕 PDF</option><option value="dokumen">📄 Dokumen (Word, PPT, Excel, Google Docs)</option><option value="gambar">🖼️ Gambar</option><option value="html">🧩 Halaman HTML interaktif</option></select>
+            <input type="url" x-model="newMateri.url" @input="newMateri.fileData = ''; newMateri.fileName = ''" placeholder="Tempel URL Google Drive, atau unggah file di bawah" class="inp">
+          </div>
+          <div @click="$refs.matFile.click()" @keydown.enter="$refs.matFile.click()" tabindex="0" role="button" @dragover.prevent @dragleave.prevent @drop.prevent="handleMaterialFileDrop($event)" class="drop"><div class="text-4xl">☁️</div>
+            <p class="text-sm">Seret file ke sini atau klik untuk memilih</p><p class="text-xs text-slate-400 mt-1" x-text="newMateri.fileName ? 'File terpilih: ' + newMateri.fileName : 'PDF, Word/PPT/Excel, gambar, atau HTML (maks 10MB)'"></p></div>
+          <input type="file" x-ref="matFile" class="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.html,.htm,image/*" @change="handleMaterialFilePick($event)">
+          <button type="button" x-show="newMateri.url || newMateri.fileName" @click="clearBerkas()" class="btn btn-ghost btn-sm">Hapus berkas dari materi ini</button>
+        </div>
         <input type="text" x-model="newMateri.deskripsi" placeholder="Deskripsi singkat materi..." class="inp">
-        <button type="submit" class="btn">Terbitkan ke siswa</button>
-      </form></div>
+        <button type="submit" class="btn" x-text="newMateri.editId ? 'Simpan perubahan' : 'Terbitkan ke siswa'"></button>
+      </form>
+    </div>
+
+    <div class="clay overflow-hidden">
+      <div class="p-5"><h3 class="text-xl">Materi yang sudah terbit</h3><p class="text-sm text-slate-400">Edit untuk mengganti video atau berkas. Hapus akan menyembunyikan materi dari siswa.</p></div>
+      <div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Judul</th><th>Kelas</th><th>Isi</th><th class="text-right">Aksi</th></tr></thead>
+        <tbody>
+          <template x-for="m in materiList" :key="m.id"><tr><td x-text="m.judul"></td><td x-text="m.kelas"></td><td x-text="tipeLabel(m)"></td>
+            <td class="text-right whitespace-nowrap"><button class="btn btn-blue btn-sm" @click="editMateri(m)">✏️ Edit</button> <button class="btn btn-red btn-sm" @click="deleteMateri(m)">🗑️ Hapus</button></td></tr></template>
+          <tr x-show="!materiList.length"><td colspan="4" class="text-center text-slate-400">Belum ada materi.</td></tr>
+        </tbody></table></div>
+    </div>
   </div>
 
   <div x-show="adminTab === 'quiz'" class="pop">
@@ -374,9 +407,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 get doneCount() { return this.pathItems.filter(i => this.isDone(i)).length; },
                 get nextItem() { return this.pathItems.find(i => !this.isDone(i)); },
                 get current() { return this.activeLesson && this.activeLesson.soal ? this.activeLesson.soal[this.quizStep] : null; },
-                nodeColor(it) { return it.type === 'quiz' ? 'n-purple' : ({ youtube: 'n-green', gambar: 'n-orange', html: 'n-orange' }[it.tipe] || 'n-blue'); },
-                nodeIcon(it) { return it.type === 'quiz' ? '⭐' : ({ youtube: '🎬', gambar: '🖼️', html: '🧩' }[it.tipe] || '📄'); },
-                tipeLabel(it) { return { youtube: 'Video', pdf: 'PDF', gambar: 'Gambar', html: 'Halaman interaktif' }[it.tipe] || 'Dokumen'; },
+                vid(m) { return m.video || (m.tipe === 'youtube' ? m.url : '') || ''; },
+                fileTipe(m) { return m.tipe && m.tipe !== 'youtube' && m.url ? m.tipe : ''; },
+                fileUrl(m) { return this.fileTipe(m) ? m.url : ''; },
+                nodeColor(it) { if (it.type === 'quiz') return 'n-purple'; if (this.vid(it)) return 'n-green'; return ({ gambar: 'n-orange', html: 'n-orange' }[this.fileTipe(it)] || 'n-blue'); },
+                nodeIcon(it) { if (it.type === 'quiz') return '⭐'; if (this.vid(it)) return '🎬'; return ({ gambar: '🖼️', html: '🧩' }[this.fileTipe(it)] || '📄'); },
+                tipeLabel(it) { const L = { pdf: 'PDF', dokumen: 'Dokumen', gambar: 'Gambar', html: 'Halaman interaktif' }, p = []; if (this.vid(it)) p.push('Video'); const f = this.fileTipe(it); if (f) p.push(L[f] || 'Dokumen'); return p.join(' + ') || 'Materi'; },
                 isDocTipe(t) { return !['youtube', 'gambar', 'html'].includes(t); },
                 driveId(url) { const m = (url || '').match(/\/d\/([\w-]{15,})|[?&]id=([\w-]{15,})/); return m ? (m[1] || m[2]) : ''; },
                 previewUrl(url) {
@@ -391,13 +427,22 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     const id = this.driveId(url);
                     return id && /drive\.google\.com/.test(url) ? `https://lh3.googleusercontent.com/d/${id}` : url;
                 },
+                wrapHtml(h) {
+                    const P = '<script>(function(){function m(){var d={};return{getItem:function(k){return k in d?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}["localStorage","sessionStorage"].forEach(function(n){try{void window[n]}catch(e){try{Object.defineProperty(window,n,{value:m(),configurable:true})}catch(_){}}})})();<\/script>';
+                    for (const re of [/<head[^>]*>/i, /<html[^>]*>/i]) { if (re.test(h)) return h.replace(re, (t) => t + P); }
+                    return P + h;
+                },
                 async loadHtmlMateri(item) {
-                    const id = this.driveId(item.url);
-                    if (!id || !this.apiUrl) { this.htmlSrc = item.url; return; }
+                    const url = this.fileUrl(item), id = this.driveId(url);
+                    if (!id || !this.apiUrl) { this.htmlSrc = url; return; }
                     this.htmlLoading = true;
                     const res = await this.postToBackend({ action: 'getHtml', fileId: id }, true);
                     if (this.activeLesson && this.activeLesson.id === item.id) {
-                        this.htmlDoc = (res && res.status === 'success') ? res.html : '<p style="font-family:sans-serif;padding:24px">Materi belum bisa dimuat. Coba lagi ya.</p>';
+                        if (res && res.status === 'success') this.htmlDoc = this.wrapHtml(res.html);
+                        else {
+                            const hint = res && /tidak dikenali/.test(res.message || '') ? 'Server (Code.gs) belum diperbarui. Deploy ulang sebagai versi baru.' : ((res && res.message) || 'Periksa koneksi internet lalu coba lagi.');
+                            this.htmlDoc = '<p style="font-family:sans-serif;padding:24px;color:#555">Materi belum bisa dimuat.<br><small>' + hint + '</small></p>';
+                        }
                         this.htmlLoading = false;
                     }
                 },
@@ -500,7 +545,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     { id: 2, name: 'Siti Aminah', kelas: '12-IPA', pin: '392011' }
                 ],
                 newStudent: { name: '', kelas: '' },
-                newMateri: { judul: '', kelas: '', tipe: 'youtube', url: '', deskripsi: '', fileName: '', fileData: '' },
+                newMateri: { judul: '', kelas: '', tipe: 'pdf', url: '', video: '', deskripsi: '', fileName: '', fileData: '', editId: '' },
                 htmlDoc: '', htmlSrc: '', htmlLoading: false,
                 newSoal: { quizJudul: 'Latihan Ulangan Harian Turunan', tanya: '', img: '', a: '', b: '', c: '', d: '', kunci: 'a' },
 
@@ -527,7 +572,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         const data = await res.json();
                         if (data.status === 'success') {
                             if (data.siswa && data.siswa.length) this.studentsList = data.siswa;
-                            if (data.materi && data.materi.length) this.materiList = data.materi;
+                            if (Array.isArray(data.materi)) this.materiList = data.materi;
                             if (data.quiz && data.quiz.length) this.quizList = data.quiz;
                             if (data.rekap && data.rekap.length) this.rekapList = data.rekap;
                             if (!silent) this.notify('Sinkronisasi Live Google Sheets berhasil.');
@@ -637,7 +682,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     this.quizAnswers = {};
                     this.quizStep = 0; this.picked = ''; this.checked = false; this.isCorrect = false; this.quizResult = null; this.combo = 0;
                     this.htmlDoc = ''; this.htmlSrc = ''; this.htmlLoading = false;
-                    if (type === 'materi' && item.tipe === 'html') this.loadHtmlMateri(item);
+                    if (type === 'materi' && this.fileTipe(item) === 'html') this.loadHtmlMateri(item);
                 },
 
                 convertToEmbed(url) {
@@ -698,29 +743,45 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     this.notify(`Siswa ditambahkan! PIN unik: ${payload.pin}`);
                 },
 
+                blankMateri() { return { judul: '', kelas: '', tipe: 'pdf', url: '', video: '', deskripsi: '', fileName: '', fileData: '', editId: '' }; },
+                cancelEdit() { this.newMateri = this.blankMateri(); },
+                clearBerkas() { this.newMateri.url = ''; this.newMateri.fileName = ''; this.newMateri.fileData = ''; },
+                editMateri(m) {
+                    this.newMateri = { judul: m.judul, kelas: m.kelas, deskripsi: m.deskripsi || '', video: this.vid(m), tipe: this.fileTipe(m) || 'pdf', url: this.fileUrl(m), fileName: '', fileData: '', editId: m.id };
+                    setTimeout(() => { const f = this.$refs.formMateri; if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+                },
                 async addMateri() {
+                    const n = this.newMateri, video = (n.video || '').trim(), berkas = n.fileData || (n.url || '').trim();
+                    if (!video && !berkas) { this.notify('Isi minimal satu: link video atau berkas materi.'); return; }
+                    const editing = !!n.editId;
                     const payload = {
-                        action: 'addMateri',
-                        judul: this.newMateri.judul,
-                        kelas: this.newMateri.kelas,
-                        tipe: this.newMateri.tipe,
-                        url: this.newMateri.fileData || this.newMateri.url,
-                        fileName: this.newMateri.fileName,
-                        deskripsi: this.newMateri.deskripsi || 'Materi pembelajaran baru.'
+                        action: editing ? 'updateMateri' : 'addMateri', id: n.editId, judul: n.judul, kelas: n.kelas,
+                        tipe: berkas ? n.tipe : 'youtube', url: berkas, video: video, fileName: n.fileName,
+                        deskripsi: n.deskripsi || 'Materi pembelajaran baru.'
                     };
-                    let newId = Date.now();
-
                     if (this.apiUrl) {
                         const res = await this.postToBackend(payload);
-                        if (res && res.status === 'error') { this.notify(res.message || 'Gagal menerbitkan materi.'); return; }
-                        if (res && res.url) payload.url = res.url;
-                        if (res && res.id) newId = res.id;
+                        if (!res) { this.notify('Tidak terhubung ke server. Coba lagi ya.'); return; }
+                        if (res.status === 'error') { this.notify(res.message || 'Gagal menyimpan materi.'); return; }
+                        await this.fetchLiveData(true);
+                    } else {
+                        const item = { id: n.editId || Date.now(), judul: n.judul, kelas: n.kelas, tipe: payload.tipe, url: berkas || video, video: video, deskripsi: payload.deskripsi };
+                        if (editing) this.materiList = this.materiList.map(x => x.id === item.id ? item : x); else this.materiList.push(item);
                     }
-
-                    const { action, ...item } = payload;
-                    this.materiList.push({ id: newId, ...item });
-                    this.newMateri = { judul: '', kelas: '', tipe: 'youtube', url: '', deskripsi: '', fileName: '', fileData: '' };
-                    this.notify('Materi berhasil diterbitkan & tersimpan di Google Drive!');
+                    this.cancelEdit();
+                    this.notify(editing ? 'Perubahan materi tersimpan!' : 'Materi berhasil diterbitkan & tersimpan di Google Drive!');
+                },
+                async deleteMateri(m) {
+                    if (!confirm('Hapus materi "' + m.judul + '"? Materi akan disembunyikan dari siswa.')) return;
+                    if (this.apiUrl) {
+                        const res = await this.postToBackend({ action: 'deleteMateri', id: m.id });
+                        if (!res || res.status !== 'success') { this.notify((res && res.message) || 'Gagal menghapus materi.'); return; }
+                        await this.fetchLiveData(true);
+                    } else {
+                        this.materiList = this.materiList.filter(x => x.id !== m.id);
+                    }
+                    if (this.newMateri.editId === m.id) this.cancelEdit();
+                    this.notify('Materi dihapus dari daftar siswa.');
                 },
 
                 async addSoal() {
