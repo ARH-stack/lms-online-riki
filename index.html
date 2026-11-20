@@ -232,7 +232,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <div class="space-y-4">
             <template x-for="(opt, k, oi) in current.opsi" :key="k">
               <button class="opt" :style="'animation-delay:' + (oi * 70) + 'ms'" :disabled="checked" @click="pick(k)"
-                :class="checked ? (k === current.kunci ? 'right' : (picked === k ? 'wrong' : 'dim')) : (picked === k ? 'sel' : '')">
+                :class="checked ? (k === correctKey ? 'right' : (picked === k ? 'wrong' : 'dim')) : (picked === k ? 'sel' : '')">
                 <span class="k" x-text="k.toUpperCase()"></span><span x-text="opt"></span>
               </button>
             </template>
@@ -245,10 +245,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <div x-show="checked" class="slide-up flex items-center gap-3 flex-1 min-w-0">
             <span class="text-4xl" x-text="isCorrect ? '🎉' : '🤔'"></span>
             <div class="min-w-0"><div class="fd text-xl" x-text="isCorrect ? 'Hebat sekali!' : 'Hampir benar!'"></div>
-              <div x-show="!isCorrect" class="text-sm" x-text="'Jawaban benar: ' + current.kunci.toUpperCase() + '. ' + current.opsi[current.kunci]"></div></div>
+              <div x-show="!isCorrect" class="text-sm" x-text="'Jawaban benar: ' + correctKey.toUpperCase() + '. ' + current.opsi[correctKey]"></div></div>
           </div>
-          <button x-show="!checked" class="btn ml-auto" :disabled="!picked" @click="checkAnswer()">Periksa</button>
-          <button x-show="checked" class="btn" :class="isCorrect ? '' : 'btn-red'" @click="nextQuestion()" x-text="quizStep < activeLesson.soal.length - 1 ? 'Lanjut' : 'Selesai'"></button>
+          <button x-show="!checked" class="btn ml-auto" :disabled="!picked || checking" @click="checkAnswer()" x-text="checking ? 'Memeriksa...' : 'Periksa'"></button>
+          <button x-show="checked" class="btn" :class="isCorrect ? '' : 'btn-red'" :disabled="submitting" @click="nextQuestion()" x-text="submitting ? 'Menghitung...' : (quizStep < activeLesson.soal.length - 1 ? 'Lanjut' : 'Selesai')"></button>
         </div>
       </div>
     </div>
@@ -277,7 +277,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
     <div class="flex items-center gap-4"><div class="w-16" x-html="mascot"></div>
       <div><h2 class="text-2xl sm:text-3xl">Ruang Kak Riki</h2><p class="text-sm text-slate-500">Kelola kurikulum, siswa dengan auto-PIN, dan rekap nilai.</p></div></div>
-    <div class="flex gap-3"><button @click="fetchLiveData()" class="btn btn-blue btn-sm">🔄 Sinkronisasi Sheets</button></div>
+    <div class="flex gap-3"><button @click="syncAdmin()" class="btn btn-blue btn-sm">🔄 Sinkronisasi Sheets</button></div>
   </div>
 
   <div class="flex gap-3 mb-8 overflow-x-auto pb-3 px-1">
@@ -289,14 +289,33 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
   <div x-show="adminTab === 'eksekutif'" class="pop">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-      <div class="clay p-5 flex items-center gap-4"><span class="text-4xl">🧒</span><div><div class="text-sm text-slate-400">Siswa aktif</div><div class="fd text-4xl" style="color:var(--b)" x-text="studentsList.length"></div></div></div>
+      <div class="clay p-5 flex items-center gap-4"><span class="text-4xl">🧒</span><div><div class="text-sm text-slate-400">Siswa aktif</div><div class="fd text-4xl" style="color:var(--b)" x-text="adm.stats.siswa.toLocaleString('id-ID')"></div></div></div>
       <div class="clay p-5 flex items-center gap-4"><span class="text-4xl">🎬</span><div><div class="text-sm text-slate-400">Modul materi</div><div class="fd text-4xl" style="color:var(--g)" x-text="materiList.length"></div></div></div>
-      <div class="clay p-5 flex items-center gap-4"><span class="text-4xl">🏆</span><div><div class="text-sm text-slate-400">Riwayat quiz</div><div class="fd text-4xl" style="color:var(--p)" x-text="rekapList.length"></div></div></div>
+      <div class="clay p-5 flex items-center gap-4"><span class="text-4xl">🏆</span><div><div class="text-sm text-slate-400">Riwayat quiz</div><div class="fd text-4xl" style="color:var(--p)" x-text="adm.stats.rekap.toLocaleString('id-ID')"></div></div></div>
     </div>
     <div class="clay overflow-hidden">
-      <div class="p-5 flex items-center justify-between"><h3 class="text-xl">Rekap nilai siswa</h3><button @click="exportCSV()" class="btn btn-yellow btn-sm">Unduh CSV</button></div>
-      <div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Nama siswa</th><th>Kelas</th><th>Judul quiz</th><th>Skor</th><th>Waktu</th></tr></thead>
-        <tbody><template x-for="(r, idx) in rekapList" :key="idx"><tr><td x-text="r.nama"></td><td x-text="r.kelas"></td><td x-text="r.quizJudul"></td><td><span class="pill" style="color:var(--gs)" x-text="r.skor"></span></td><td class="text-slate-400" x-text="r.timestamp"></td></tr></template></tbody></table></div>
+      <div class="p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="text-xl">Rekap nilai siswa</h3><button @click="exportCSV()" class="btn btn-yellow btn-sm">⬇ Unduh CSV (sesuai filter)</button></div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <input type="search" class="inp" placeholder="🔍 Cari nama siswa atau judul quiz" x-model="adm.rekap.q" @input.debounce.400ms="loadRekap(1)" aria-label="Cari rekap">
+          <select class="inp" x-model="adm.rekap.kelas" @change="loadRekap(1)" aria-label="Filter kelas"><option value="">Semua kelas</option><template x-for="k in adm.stats.kelasList" :key="k"><option :value="k" x-text="k"></option></template></select>
+          <select class="inp" x-model="adm.rekap.quiz" @change="loadRekap(1)" aria-label="Filter quiz"><option value="">Semua quiz</option><template x-for="k in adm.stats.quizList" :key="k"><option :value="k" x-text="k"></option></template></select>
+        </div>
+      </div>
+      <div class="overflow-x-auto transition-opacity" :class="adm.rekap.loading && 'opacity-50'"><table class="tbl"><thead><tr><th>Nama siswa</th><th>Kelas</th><th>Judul quiz</th><th>Skor</th><th>Waktu</th></tr></thead>
+        <tbody>
+          <template x-for="(r, idx) in adm.rekap.rows" :key="idx"><tr><td x-text="r.nama"></td><td x-text="r.kelas"></td><td x-text="r.quizJudul"></td><td><span class="pill" style="color:var(--gs)" x-text="r.skor"></span></td><td class="text-slate-400 whitespace-nowrap" x-text="r.timestamp"></td></tr></template>
+          <tr x-show="!adm.rekap.rows.length && !adm.rekap.loading"><td colspan="5" class="text-center text-slate-400">Belum ada data yang cocok.</td></tr>
+        </tbody></table></div>
+      <div class="p-4 flex flex-wrap items-center justify-between gap-3 text-sm">
+        <span class="text-slate-500" x-text="pageInfo(adm.rekap)"></span>
+        <div class="flex flex-wrap items-center gap-2">
+          <select class="inp" style="width:auto;padding:8px 14px" x-model.number="adm.rekap.size" @change="loadRekap(1)" aria-label="Baris per halaman"><option value="25">25 / halaman</option><option value="50">50 / halaman</option><option value="100">100 / halaman</option></select>
+          <button class="btn btn-ghost btn-sm" :disabled="adm.rekap.page <= 1" @click="loadRekap(adm.rekap.page - 1)">‹ Sebelumnya</button>
+          <span class="pill" x-text="adm.rekap.page + ' / ' + pages(adm.rekap)"></span>
+          <button class="btn btn-ghost btn-sm" :disabled="adm.rekap.page >= pages(adm.rekap)" @click="loadRekap(adm.rekap.page + 1)">Berikutnya ›</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -306,9 +325,27 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <input type="text" x-model="newStudent.name" placeholder="Nama lengkap siswa" required class="inp">
         <input type="text" x-model="newStudent.kelas" placeholder="Kelas (contoh: 12-IPA)" required class="inp">
         <button type="submit" class="btn">Buat PIN & simpan</button></form></div>
-    <div class="clay overflow-hidden"><div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Nama siswa</th><th>Kelas</th><th>PIN</th><th>XP</th><th class="text-right">Aksi</th></tr></thead>
-      <tbody><template x-for="s in studentsList" :key="s.id"><tr><td x-text="s.name"></td><td x-text="s.kelas"></td><td class="font-mono text-lg" style="color:var(--b)" x-text="s.pin"></td><td x-text="'⭐ ' + (s.xp || 0)"></td>
-        <td class="text-right"><button @click="copyPin(s.pin, s.name)" class="btn btn-ghost btn-sm">📋 Salin undangan</button></td></tr></template></tbody></table></div></div>
+    <div class="clay overflow-hidden">
+      <div class="p-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <input type="search" class="inp sm:col-span-2" placeholder="🔍 Cari nama, PIN, atau ID siswa" x-model="adm.siswa.q" @input.debounce.400ms="loadSiswa(1)" aria-label="Cari siswa">
+        <select class="inp" x-model="adm.siswa.kelas" @change="loadSiswa(1)" aria-label="Filter kelas"><option value="">Semua kelas</option><template x-for="k in adm.stats.kelasList" :key="k"><option :value="k" x-text="k"></option></template></select>
+      </div>
+      <div class="overflow-x-auto transition-opacity" :class="adm.siswa.loading && 'opacity-50'"><table class="tbl"><thead><tr><th>Nama siswa</th><th>Kelas</th><th>PIN</th><th>XP</th><th class="text-right">Aksi</th></tr></thead>
+        <tbody>
+          <template x-for="s in adm.siswa.rows" :key="s.id"><tr><td x-text="s.name"></td><td x-text="s.kelas"></td><td class="font-mono text-lg" style="color:var(--b)" x-text="s.pin"></td><td x-text="'⭐ ' + (s.xp || 0)"></td>
+            <td class="text-right"><button @click="copyPin(s.pin, s.name)" class="btn btn-ghost btn-sm">📋 Salin undangan</button></td></tr></template>
+          <tr x-show="!adm.siswa.rows.length && !adm.siswa.loading"><td colspan="5" class="text-center text-slate-400">Belum ada siswa yang cocok.</td></tr>
+        </tbody></table></div>
+      <div class="p-4 flex flex-wrap items-center justify-between gap-3 text-sm">
+        <span class="text-slate-500" x-text="pageInfo(adm.siswa)"></span>
+        <div class="flex flex-wrap items-center gap-2">
+          <select class="inp" style="width:auto;padding:8px 14px" x-model.number="adm.siswa.size" @change="loadSiswa(1)" aria-label="Baris per halaman"><option value="25">25 / halaman</option><option value="50">50 / halaman</option><option value="100">100 / halaman</option></select>
+          <button class="btn btn-ghost btn-sm" :disabled="adm.siswa.page <= 1" @click="loadSiswa(adm.siswa.page - 1)">‹ Sebelumnya</button>
+          <span class="pill" x-text="adm.siswa.page + ' / ' + pages(adm.siswa)"></span>
+          <button class="btn btn-ghost btn-sm" :disabled="adm.siswa.page >= pages(adm.siswa)" @click="loadSiswa(adm.siswa.page + 1)">Berikutnya ›</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div x-show="adminTab === 'materi'" class="pop space-y-8">
@@ -402,7 +439,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 apiUrl: 'https://script.google.com/macros/s/AKfycbz_GqDLroOxzbtr3CL5at1V9lm0-4MBNDscp7DEhep8r0L8UzaY2S65mTLSppQV9mDs/exec',
                 loading: false,
                 toast: { show: false, message: '', timer: null },
-                session: { loggedIn: false, role: '', id: '', name: '', kelas: '' },
+                session: { loggedIn: false, role: '', id: '', token: '', name: '', kelas: '' },
                 pinInput: '',
                 loginError: '',
                 adminTab: 'eksekutif',
@@ -480,21 +517,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     } catch (e) {}
                 },
                 startSession(info, prog) {
-                    this.session = { loggedIn: true, role: info.role, id: info.id || '', name: info.name, kelas: info.kelas };
+                    this.session = { loggedIn: true, role: info.role, id: info.id || '', token: info.token || '', name: info.name, kelas: info.kelas };
                     this.xp = prog ? (prog.total || 0) : 0;
                     this.done = prog ? (prog.progres || {}) : {};
                     sessionExp = Date.now() + SESSION_TTL;
                     this.persist();
                 },
                 async refreshStudent() {
-                    const res = await this.postToBackend({ action: 'restoreSession', id: this.session.id }, true);
+                    const res = await this.postToBackend({ action: 'restoreSession' }, true);
                     if (res && res.status === 'success') {
                         this.session.name = res.name; this.session.kelas = res.kelas;
                         this.xp = res.total || 0; this.done = res.progres || {};
                         this.persist();
-                    } else if (res && res.status === 'error') {
-                        this.logout();
-                        this.notify(res.message || 'Sesi berakhir, silakan masuk lagi.');
                     }
                 },
                 checkExpiry() {
@@ -517,15 +551,24 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     }
                 },
 
-                pick(k) { if (this.checked) return; this.picked = k; this.quizAnswers[this.quizStep] = k; },
-                checkAnswer() {
-                    if (!this.picked || this.checked) return;
-                    this.isCorrect = this.picked === this.current.kunci;
-                    this.checked = true;
+                pick(k) { if (this.checked || this.checking) return; this.picked = k; this.quizAnswers[this.current.sid] = k; },
+                async checkAnswer() {
+                    if (!this.picked || this.checked || this.checking) return;
+                    const step = this.quizStep, lesson = this.activeLesson;
+                    this.checking = true;
+                    const res = await this.postToBackend({ action: 'checkSoal', sid: this.current.sid, pilihan: this.picked }, true);
+                    this.checking = false;
+                    if (this.activeLesson !== lesson || this.quizStep !== step) return;
+                    if (!res || res.status !== 'success') {
+                        if (!res || res.code !== 'AUTH') this.notify((res && res.message) || 'Belum terhubung ke server. Coba tekan Periksa lagi ya.');
+                        return;
+                    }
+                    this.isCorrect = !!res.benar; this.correctKey = res.kunci; this.checked = true;
                     if (this.isCorrect) { this.combo++; this.sfx('ok'); this.confetti(18); } else { this.combo = 0; this.sfx('no'); }
                 },
                 async nextQuestion() {
-                    if (this.quizStep < this.activeLesson.soal.length - 1) { this.quizStep++; this.picked = ''; this.checked = false; }
+                    if (this.submitting) return;
+                    if (this.quizStep < this.activeLesson.soal.length - 1) { this.quizStep++; this.picked = ''; this.checked = false; this.correctKey = ''; }
                     else { await this.submitQuiz(); }
                 },
                 confetti(n = 30) {
@@ -548,27 +591,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     } catch (e) {}
                 },
 
-                materiList: [
-                    { id: 1, judul: 'Strategi Kilat Turunan & Integral', tipe: 'youtube', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', kelas: '12-IPA', deskripsi: 'Paham konsep turunan dalam 10 menit tanpa pusing.' },
-                    { id: 2, judul: 'Ringkasan Rumus Cepat Fisika UTBK', tipe: 'pdf', url: 'https://drive.google.com', kelas: '12-IPA', deskripsi: 'Modul praktis rumus fisika terlengkap.' }
-                ],
-                quizList: [
-                    { 
-                        id: 1, 
-                        judul: 'Latihan Ulangan Harian Turunan', 
-                        soal: [
-                            { tanya: 'Berapa turunan dari f(x) = 3x^2?', img: '', opsi: { a: '3x', b: '6x', c: '9x', d: 'x^2' }, kunci: 'b' },
-                            { tanya: 'Jika f(x) = 5, maka f\'(x) adalah...', img: '', opsi: { a: '5', b: '1', c: '0', d: 'x' }, kunci: 'c' }
-                        ]
-                    }
-                ],
-                rekapList: [
-                    { nama: 'Budi Santoso', kelas: '12-IPA', quizJudul: 'Latihan Aljabar Dasar', skor: 85, timestamp: '17 Nov 2026, 14:20' }
-                ],
-                studentsList: [
-                    { id: 1, name: 'Budi Santoso', kelas: '12-IPA', pin: '849201' },
-                    { id: 2, name: 'Siti Aminah', kelas: '12-IPA', pin: '392011' }
-                ],
+                materiList: [], quizList: [],
+                adm: {
+                    stats: { siswa: 0, materi: 0, rekap: 0, kelasList: [], quizList: [] },
+                    rekap: { rows: [], total: 0, page: 1, size: 25, q: '', kelas: '', quiz: '', loading: false, seq: 0 },
+                    siswa: { rows: [], total: 0, page: 1, size: 25, q: '', kelas: '', loading: false, seq: 0 }
+                },
+                checking: false, submitting: false, correctKey: '',
                 newStudent: { name: '', kelas: '' },
                 newMateri: { judul: '', kelas: '', tipe: 'pdf', url: '', video: '', deskripsi: '', fileName: '', fileData: '', editId: '' },
                 htmlDoc: '', htmlSrc: '', htmlLoading: false,
@@ -577,11 +606,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 initApp() {
                     let saved = null;
                     try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) {}
-                    if (saved && saved.loggedIn && saved.exp > Date.now()) {
-                        this.session = { loggedIn: true, role: saved.role, id: saved.id || '', name: saved.name, kelas: saved.kelas };
+                    if (saved && saved.loggedIn && saved.token && saved.exp > Date.now()) {
+                        this.session = { loggedIn: true, role: saved.role, id: saved.id || '', token: saved.token, name: saved.name, kelas: saved.kelas };
                         this.xp = saved.xp || 0; this.done = saved.done || {};
                         sessionExp = saved.exp;
-                        if (saved.role === 'student' && this.apiUrl && saved.id) this.refreshStudent();
+                        if (saved.role === 'student' && this.apiUrl) this.refreshStudent();
+                        if (saved.role === 'admin' && this.apiUrl) this.adminLoadAll();
                     } else {
                         try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
                     }
@@ -596,10 +626,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         const res = await fetch(this.apiUrl);
                         const data = await res.json();
                         if (data.status === 'success') {
-                            if (data.siswa && data.siswa.length) this.studentsList = data.siswa;
+                            
                             if (Array.isArray(data.materi)) this.materiList = data.materi;
-                            if (data.quiz && data.quiz.length) this.quizList = data.quiz;
-                            if (data.rekap && data.rekap.length) this.rekapList = data.rekap;
+                            if (Array.isArray(data.quiz)) this.quizList = data.quiz;
+                            
                             if (!silent) this.notify('Sinkronisasi Live Google Sheets berhasil.');
                         }
                     } catch (err) {
@@ -616,9 +646,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     try {
                         const res = await fetch(this.apiUrl, {
                             method: 'POST',
-                            body: JSON.stringify(payload)
+                            body: JSON.stringify({ token: this.session.token, ...payload })
                         });
-                        return await res.json();
+                        const out = await res.json();
+                        if (out && out.code === 'AUTH' && this.session.loggedIn) {
+                            this.logout();
+                            this.notify(out.message || 'Sesi berakhir, silakan masuk lagi.');
+                        }
+                        return out;
                     } catch (err) {
                         console.error(err);
                         return null;
@@ -648,26 +683,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
                 async handleLogin() {
                     this.loginError = '';
-                    const cleanPin = this.pinInput.trim().toUpperCase();
-
-                    if (this.apiUrl) {
-                        const res = await this.postToBackend({ action: 'login', pin: cleanPin });
-                        if (res && res.status === 'success') {
-                            this.startSession({ role: 'student', id: res.id, name: res.name, kelas: res.kelas }, res);
-                            
-                            return;
-                        } else if (res && res.message) {
-                            this.loginError = res.message;
-                            return;
-                        }
-                    }
-
-                    const found = this.studentsList.find(s => s.pin === cleanPin);
-                    if (found) {
-                        this.startSession({ role: 'student', id: found.id, name: found.name, kelas: found.kelas }, null);
-                        
+                    if (!this.apiUrl) { this.loginError = 'Endpoint backend belum terkonfigurasi.'; return; }
+                    const res = await this.postToBackend({ action: 'login', pin: this.pinInput.trim().toUpperCase() });
+                    if (res && res.status === 'success') {
+                        this.startSession({ role: 'student', id: res.id, token: res.token, name: res.name, kelas: res.kelas }, res);
                     } else {
-                        this.loginError = 'PIN tidak terdaftar. Hubungi admin bimbel Anda.';
+                        this.loginError = (res && res.message) || 'Tidak bisa terhubung ke server. Periksa internet lalu coba lagi.';
                     }
                 },
 
@@ -685,18 +706,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     });
 
                     if (res && res.status === 'success') {
-                        this.startSession({ role: 'admin', name: res.name || 'Owner / Instructor', kelas: 'All' }, null);
+                        this.startSession({ role: 'admin', token: res.token, name: res.name || 'Owner / Instructor', kelas: 'All' }, null);
                         this.openAdminModal = false;
                         this.adminEmailInput = '';
                         this.adminPassInput = '';
-                        this.fetchLiveData();
+                        this.fetchLiveData(true);
+                        this.adminLoadAll();
                     } else {
                         this.adminLoginError = (res && res.message) ? res.message : 'Email atau password admin salah.';
                     }
                 },
 
                 logout() {
-                    this.session = { loggedIn: false, role: '', id: '', name: '', kelas: '' };
+                    this.session = { loggedIn: false, role: '', id: '', token: '', name: '', kelas: '' };
                     sessionExp = 0; this.persist();
                     this.pinInput = '';
                     this.activeLesson = null; this.quizResult = null; this.xp = 0; this.done = {};
@@ -706,6 +728,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     this.activeLesson = { ...item, type };
                     this.quizAnswers = {};
                     this.quizStep = 0; this.picked = ''; this.checked = false; this.isCorrect = false; this.quizResult = null; this.combo = 0;
+                    this.correctKey = ''; this.checking = false; this.submitting = false;
                     this.htmlDoc = ''; this.htmlSrc = ''; this.htmlLoading = false;
                     if (type === 'materi' && this.fileTipe(item) === 'html') this.loadHtmlMateri(item);
                 },
@@ -721,51 +744,67 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1` : url;
                 },
 
+                applyProgress(res) {
+                    if (res.total === undefined) return;
+                    this.xp = res.total; this.done = res.progres || {};
+                    if (res.gained > 0) { this.xpBump = true; setTimeout(() => this.xpBump = false, 500); }
+                    this.persist();
+                },
                 async submitQuiz() {
-                    const lesson = this.activeLesson, total = lesson.soal.length;
-                    let correctCount = 0;
-                    lesson.soal.forEach((q, idx) => { if (this.quizAnswers[idx] === q.kunci) correctCount++; });
-                    const finalScore = Math.round((correctCount / total) * 100);
-
-                    // XP dihitung lokal dulu (instan), lalu disamakan dengan server
-                    const k = this.itemKey({ type: 'quiz', judul: lesson.judul });
-                    const prev = this.done[k] || 0, xpNow = correctCount * 10, gained = Math.max(0, xpNow - prev);
-                    this.done[k] = Math.max(prev, xpNow);
-
-                    this.rekapList.unshift({
-                        id: Date.now(), nama: this.session.name, kelas: this.session.kelas,
-                        quizJudul: lesson.judul, skor: finalScore, timestamp: new Date().toLocaleString('id-ID')
-                    });
-                    this.quizResult = { score: finalScore, correct: correctCount, total, gained, stars: finalScore >= 90 ? 3 : finalScore >= 60 ? 2 : 1 };
-                    this.addXp(gained);
-                    if (finalScore >= 60) { this.confetti(70); this.sfx('ok'); }
-
-                    if (this.apiUrl) {
-                        const res = await this.postToBackend({
-                            action: 'submitQuiz', id: this.session.id, nama: this.session.name, kelas: this.session.kelas,
-                            quizJudul: lesson.judul, skor: finalScore, benar: correctCount
-                        }, true);
-                        if (res && res.status === 'success' && res.total !== undefined) { this.xp = res.total; this.done = res.progres; this.persist(); }
+                    const lesson = this.activeLesson;
+                    this.submitting = true;
+                    const res = await this.postToBackend({ action: 'submitQuiz', quizJudul: lesson.judul, jawaban: { ...this.quizAnswers } }, true);
+                    this.submitting = false;
+                    if (this.activeLesson !== lesson) return;
+                    if (!res || res.status !== 'success') {
+                        if (!res || res.code !== 'AUTH') this.notify((res && res.message) || 'Hasil belum terkirim. Tekan Selesai sekali lagi ya.');
+                        return;
                     }
+                    this.quizResult = { score: res.skor, correct: res.benar, total: res.jumlahSoal, gained: res.gained, stars: res.skor >= 90 ? 3 : res.skor >= 60 ? 2 : 1 };
+                    this.applyProgress(res);
+                    if (res.skor >= 60) { this.confetti(70); this.sfx('ok'); }
+                },
+
+                // ---------- Data admin: filter & halaman dihitung di server ----------
+                adminLoadAll() { this.loadStats(); this.loadRekap(1); this.loadSiswa(1); },
+                async syncAdmin() { await this.fetchLiveData(); this.adminLoadAll(); },
+                pageInfo(t) {
+                    if (!t.total) return '0 data';
+                    return `Menampilkan ${(t.page - 1) * t.size + 1}–${Math.min(t.total, t.page * t.size)} dari ${t.total.toLocaleString('id-ID')}`;
+                },
+                pages(t) { return Math.max(1, Math.ceil(t.total / t.size)); },
+                async loadStats() {
+                    const r = await this.postToBackend({ action: 'adminStats' }, true);
+                    if (r && r.status === 'success') this.adm.stats = r;
+                },
+                async loadRekap(page = 1) {
+                    const t = this.adm.rekap, my = ++t.seq;
+                    t.loading = true;
+                    const r = await this.postToBackend({ action: 'adminRekap', page, size: t.size, q: t.q, kelas: t.kelas, quiz: t.quiz }, true);
+                    if (my !== t.seq) return;
+                    t.loading = false;
+                    if (r && r.status === 'success') { t.rows = r.rows; t.total = r.total; t.page = r.page; }
+                    else if (!r) this.notify('Tidak terhubung ke server.');
+                    else if (r.code !== 'AUTH') this.notify(r.message || 'Gagal memuat rekap.');
+                },
+                async loadSiswa(page = 1) {
+                    const t = this.adm.siswa, my = ++t.seq;
+                    t.loading = true;
+                    const r = await this.postToBackend({ action: 'adminSiswa', page, size: t.size, q: t.q, kelas: t.kelas }, true);
+                    if (my !== t.seq) return;
+                    t.loading = false;
+                    if (r && r.status === 'success') { t.rows = r.rows; t.total = r.total; t.page = r.page; }
+                    else if (!r) this.notify('Tidak terhubung ke server.');
+                    else if (r.code !== 'AUTH') this.notify(r.message || 'Gagal memuat data siswa.');
                 },
 
                 async addStudent() {
-                    const randomPin = Math.floor(100000 + Math.random() * 900000).toString();
-                    const payload = {
-                        action: 'addSiswa',
-                        name: this.newStudent.name,
-                        kelas: this.newStudent.kelas,
-                        pin: randomPin
-                    };
-
-                    if (this.apiUrl) {
-                        const res = await this.postToBackend(payload);
-                        if (res && res.pin) payload.pin = res.pin;
-                    }
-
-                    this.studentsList.push({ id: Date.now(), name: payload.name, kelas: payload.kelas, pin: payload.pin });
+                    const res = await this.postToBackend({ action: 'addSiswa', name: this.newStudent.name, kelas: this.newStudent.kelas });
+                    if (!res) { this.notify('Tidak terhubung ke server. Coba lagi ya.'); return; }
+                    if (res.status !== 'success') { if (res.code !== 'AUTH') this.notify(res.message || 'Gagal menambah siswa.'); return; }
                     this.newStudent = { name: '', kelas: '' };
-                    this.notify(`Siswa ditambahkan! PIN unik: ${payload.pin}`);
+                    this.notify(`Siswa ditambahkan! PIN unik: ${res.pin}`);
+                    this.loadSiswa(1); this.loadStats();
                 },
 
                 blankMateri() { return { judul: '', kelas: '', tipe: 'pdf', url: '', video: '', deskripsi: '', fileName: '', fileData: '', editId: '' }; },
@@ -810,33 +849,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 },
 
                 async addSoal() {
-                    const payload = {
-                        action: 'addSoal',
-                        ...this.newSoal
-                    };
-
-                    let finalImg = this.newSoal.img;
-                    if (this.apiUrl) {
-                        const res = await this.postToBackend(payload);
-                        if (res && res.imgUrl) finalImg = res.imgUrl;
-                    }
-
-                    let targetQuiz = this.quizList.find(q => q.judul.toLowerCase() === this.newSoal.quizJudul.toLowerCase());
-                    const soalObj = {
-                        tanya: this.newSoal.tanya,
-                        img: finalImg,
-                        opsi: { a: this.newSoal.a, b: this.newSoal.b, c: this.newSoal.c, d: this.newSoal.d },
-                        kunci: this.newSoal.kunci
-                    };
-
-                    if (targetQuiz) {
-                        targetQuiz.soal.push(soalObj);
-                    } else {
-                        this.quizList.push({ id: Date.now(), judul: this.newSoal.quizJudul, soal: [soalObj] });
-                    }
-
-                    this.newSoal.tanya = '';
-                    this.newSoal.img = '';
+                    const res = await this.postToBackend({ action: 'addSoal', ...this.newSoal });
+                    if (!res) { this.notify('Tidak terhubung ke server. Coba lagi ya.'); return; }
+                    if (res.status !== 'success') { if (res.code !== 'AUTH') this.notify(res.message || 'Gagal menyimpan soal.'); return; }
+                    await this.fetchLiveData(true);
+                    this.loadStats();
+                    this.newSoal.tanya = ''; this.newSoal.img = '';
                     this.newSoal.a = ''; this.newSoal.b = ''; this.newSoal.c = ''; this.newSoal.d = '';
                     this.notify('Soal berhasil ditambahkan ke bank quiz!');
                 },
@@ -875,17 +893,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     this.notify(`Pesan undangan & PIN ${pin} berhasil disalin!`);
                 },
 
-                exportCSV() {
-                    let csvContent = "Nama Siswa,Kelas,Nama Quiz,Skor,Waktu Submit\n";
-                    this.rekapList.forEach(r => {
-                        csvContent += `"${r.nama}","${r.kelas}","${r.quizJudul}",${r.skor},"${r.timestamp}"\n`;
-                    });
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement("a");
-                    link.href = URL.createObjectURL(blob);
-                    link.download = "Rekap_Nilai_Bimbel.csv";
+                async exportCSV() {
+                    const t = this.adm.rekap;
+                    this.notify('Menyiapkan file CSV...');
+                    const r = await this.postToBackend({ action: 'adminRekap', all: true, q: t.q, kelas: t.kelas, quiz: t.quiz }, true);
+                    if (!r || r.status !== 'success') { if (!r || r.code !== 'AUTH') this.notify((r && r.message) || 'Gagal mengunduh data.'); return; }
+                    // Awali sel berbahaya (=, +, -, @) dengan tanda petik agar tidak dijalankan sebagai rumus di Excel
+                    const esc = (v) => { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+                    let csv = 'Nama Siswa,Kelas,Nama Quiz,Skor,Waktu Submit\n';
+                    r.rows.forEach(x => { csv += [esc(x.nama), esc(x.kelas), esc(x.quizJudul), x.skor, esc(x.timestamp)].join(',') + '\n'; });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
+                    link.download = 'Rekap_Nilai_Bimbel.csv';
                     link.click();
-                    this.notify('File Rekap_Nilai_Bimbel.csv berhasil diunduh.');
+                    this.notify(`Rekap_Nilai_Bimbel.csv diunduh (${r.rows.length.toLocaleString('id-ID')} baris).`);
                 }
             }
         }
