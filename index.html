@@ -70,6 +70,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .blob{position:absolute;border-radius:50%;animation:float 9s ease-in-out infinite;box-shadow:inset -14px -14px 24px rgba(0,0,0,.08),inset 12px 12px 22px rgba(255,255,255,.6)}
 .cf{position:fixed;top:45vh;width:10px;height:15px;border-radius:3px;z-index:100;pointer-events:none;animation:cf 1.6s cubic-bezier(.2,.7,.4,1) forwards}
 .dots i{width:14px;height:14px;border-radius:50%;display:inline-block;margin:0 3px;animation:hop .8s infinite}.dots i:nth-child(2){animation-delay:.12s}.dots i:nth-child(3){animation-delay:.24s}
+.fsbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.fsbox .fs-out{display:none}
+.fsbox:fullscreen,.fsbox.fs-fake{background:var(--bg);display:flex;flex-direction:column;padding:12px;margin:0}
+.fsbox.fs-fake{position:fixed;inset:0;z-index:95;margin:0!important;overflow:auto}
+.fsbox:fullscreen .fsbody,.fsbox.fs-fake .fsbody{flex:1;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;min-height:0}
+.fsbox:fullscreen .fs-in,.fsbox.fs-fake .fs-in{display:none}
+.fsbox:fullscreen .fs-out,.fsbox.fs-fake .fs-out{display:inline}
+.fsbox:fullscreen img,.fsbox.fs-fake img{max-height:100%!important;max-width:100%}
+.fsbox:-webkit-full-screen{background:var(--bg);display:flex;flex-direction:column;padding:12px;margin:0}
+.fsbox:-webkit-full-screen .fsbody{flex:1;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;min-height:0}
+.fsbox:-webkit-full-screen .fs-in{display:none}
+.fsbox:-webkit-full-screen .fs-out{display:inline}
 .pop{animation:pop .45s cubic-bezier(.3,1.7,.5,1)}.bump{animation:pulse .5s}.slide-up{animation:slideup .35s cubic-bezier(.3,1.4,.5,1)}.shake{animation:shake .45s}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
@@ -130,7 +142,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
   <!-- Peta belajar -->
   <template x-if="!activeLesson">
-  <main class="max-w-xl mx-auto px-4 pt-6 pop">
+  <main class="max-w-3xl mx-auto px-4 pt-6 pop">
     <div class="clay p-5 flex items-center gap-4">
       <div class="w-24 shrink-0" x-html="mascot"></div>
       <div class="flex-1">
@@ -162,31 +174,31 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
   <!-- Materi -->
   <template x-if="activeLesson && activeLesson.type === 'materi'">
-  <main class="max-w-3xl mx-auto px-4 pt-6 pop">
+  <main class="w-full max-w-[1500px] mx-auto px-3 sm:px-6 pt-6 pop">
     <button @click="closeLesson()" class="btn btn-ghost btn-sm mb-4">← Kembali ke peta</button>
     <div class="clay p-4 sm:p-6">
       <template x-if="vid(activeLesson)">
-        <div>
-          <div class="fd text-lg mb-2">🎬 Video</div>
-          <div class="aspect-video rounded-3xl overflow-hidden bg-slate-900" style="box-shadow:inset 0 6px 14px rgba(0,0,0,.4)">
+        <div class="fsbox">
+          <div class="fsbar"><div class="fd text-lg">🎬 Video</div><button type="button" class="btn btn-ghost btn-sm" @click="toggleFull($event)"><span class="fs-in">⛶ Layar penuh</span><span class="fs-out">✕ Keluar layar penuh</span></button></div>
+          <div class="fsbody aspect-video mx-auto rounded-3xl overflow-hidden bg-slate-900" style="width:min(100%,calc(78vh * 16 / 9));box-shadow:inset 0 6px 14px rgba(0,0,0,.4)">
             <iframe :src="convertToEmbed(vid(activeLesson))" class="w-full h-full" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
       </template>
       <template x-if="fileTipe(activeLesson)">
-        <div class="mt-6">
-          <div class="fd text-lg mb-2">📚 Materi bacaan</div>
+        <div class="mt-6 fsbox">
+          <div class="fsbar"><div class="fd text-lg">📚 Materi bacaan</div><button type="button" class="btn btn-ghost btn-sm" @click="toggleFull($event)"><span class="fs-in">⛶ Layar penuh</span><span class="fs-out">✕ Keluar layar penuh</span></button></div>
           <template x-if="fileTipe(activeLesson) === 'gambar'">
-            <div class="rounded-3xl bg-sky-50 p-2 flex justify-center"><img :src="imageUrl(fileUrl(activeLesson))" :alt="activeLesson.judul" class="max-h-[70vh] w-auto rounded-2xl object-contain"></div>
+            <div class="fsbody rounded-3xl bg-sky-50 p-2 flex justify-center items-center"><img :src="imageUrl(fileUrl(activeLesson))" :alt="activeLesson.judul" class="max-h-[80vh] w-auto rounded-2xl object-contain"></div>
           </template>
           <template x-if="fileTipe(activeLesson) === 'html'">
-            <div class="relative h-[70vh] rounded-3xl overflow-hidden bg-white" style="border:4px solid #D7ECF9">
+            <div class="fsbody relative h-[85vh] rounded-3xl overflow-hidden bg-white" style="border:4px solid #D7ECF9">
               <div x-show="htmlLoading" class="absolute inset-0 grid place-items-center bg-white"><div class="dots"><i style="background:var(--g)"></i><i style="background:var(--b)"></i><i style="background:var(--y)"></i></div></div>
               <iframe sandbox="allow-scripts allow-forms allow-popups" :src="htmlSrc || null" :srcdoc="htmlDoc || null" :title="activeLesson.judul" class="w-full h-full"></iframe>
             </div>
           </template>
           <template x-if="isDocTipe(fileTipe(activeLesson))">
-            <div class="h-[70vh] rounded-3xl overflow-hidden bg-slate-100" style="border:4px solid #D7ECF9"><iframe :src="previewUrl(fileUrl(activeLesson))" :title="activeLesson.judul" class="w-full h-full" allow="autoplay"></iframe></div>
+            <div class="fsbody h-[85vh] rounded-3xl overflow-hidden bg-slate-100" style="border:4px solid #D7ECF9"><iframe :src="previewUrl(fileUrl(activeLesson))" :title="activeLesson.judul" class="w-full h-full" allow="autoplay"></iframe></div>
           </template>
         </div>
       </template>
@@ -206,14 +218,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   <div class="fixed inset-0 z-40 bg-[var(--bg)] flex flex-col">
     <template x-if="!quizResult">
     <div class="flex flex-col h-full">
-      <div class="px-4 py-4 flex items-center gap-3 max-w-2xl w-full mx-auto">
+      <div class="px-4 py-4 flex items-center gap-3 max-w-3xl w-full mx-auto">
         <button class="btn btn-ghost btn-sm" @click="closeLesson()" aria-label="Keluar dari kuis">✕</button>
         <div class="bar flex-1"><div class="fill" :style="'width:' + ((quizStep + (checked ? 1 : 0)) / activeLesson.soal.length * 100) + '%'"></div></div>
         <span x-show="combo > 1" class="pop fd text-orange-500 text-lg" x-text="'🔥 ' + combo"></span>
       </div>
       <div class="flex-1 overflow-y-auto px-4 pb-56">
         <template x-for="n in [quizStep]" :key="n">
-        <div class="max-w-2xl mx-auto">
+        <div class="max-w-3xl mx-auto">
           <p class="text-sm text-slate-400 mt-2" x-text="'Soal ' + (quizStep + 1) + ' dari ' + activeLesson.soal.length"></p>
           <h2 class="text-2xl sm:text-3xl mb-5" x-text="current.tanya"></h2>
           <template x-if="current.img"><div class="clay-sm p-2 mb-5 flex justify-center"><img :src="current.img" class="max-h-60 object-contain rounded-2xl" alt=""></div></template>
@@ -229,7 +241,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </template>
       </div>
       <div class="sheet" :class="!checked ? 'idle' : (isCorrect ? 'ok' : 'no')">
-        <div class="max-w-2xl mx-auto px-4 py-5 flex items-center gap-4">
+        <div class="max-w-3xl mx-auto px-4 py-5 flex items-center gap-4">
           <div x-show="checked" class="slide-up flex items-center gap-3 flex-1 min-w-0">
             <span class="text-4xl" x-text="isCorrect ? '🎉' : '🤔'"></span>
             <div class="min-w-0"><div class="fd text-xl" x-text="isCorrect ? 'Hebat sekali!' : 'Hampir benar!'"></div>
@@ -261,7 +273,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <!-- ============ 3. ADMIN ============ -->
 <template x-if="session.loggedIn && session.role === 'admin'">
-<div class="max-w-6xl mx-auto px-4 py-8">
+<div class="max-w-[1500px] mx-auto px-4 sm:px-6 py-8">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
     <div class="flex items-center gap-4"><div class="w-16" x-html="mascot"></div>
       <div><h2 class="text-2xl sm:text-3xl">Ruang Kak Riki</h2><p class="text-sm text-slate-500">Kelola kurikulum, siswa dengan auto-PIN, dan rekap nilai.</p></div></div>
@@ -445,6 +457,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         }
                         this.htmlLoading = false;
                     }
+                },
+                toggleFull(e) {
+                    const box = e.currentTarget.closest('.fsbox');
+                    const cur = document.fullscreenElement || document.webkitFullscreenElement;
+                    if (cur || box.classList.contains('fs-fake')) {
+                        if (cur) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                        box.classList.remove('fs-fake');
+                        return;
+                    }
+                    const req = box.requestFullscreen || box.webkitRequestFullscreen;
+                    if (!req) { box.classList.add('fs-fake'); return; }
+                    try { const p = req.call(box); if (p && p.catch) p.catch(() => box.classList.add('fs-fake')); }
+                    catch (_) { box.classList.add('fs-fake'); }
                 },
                 itemKey(it) { return it.type === 'quiz' ? 'quiz:' + it.judul : 'materi:' + it.id; },
                 isDone(it) { return this.done[this.itemKey(it)] !== undefined; },
